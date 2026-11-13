@@ -2,6 +2,12 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.7 — 13/11/2026
+- Modo claro más legible: fondo más marcado, fichas con sombra y borde, colores de nivel más oscuros (contraste 4,5 o más).
+- Cabecera con degradé más oscuro para que el texto blanco se lea bien.
+- Granizo resaltado: la ficha de granizo y las horas con riesgo llevan contorno naranja o rojo; etiquetas llenas en "Próximos días".
+- "Próximos días" con columnas alineadas; íconos con contorno en modo claro; punto de alerta de la pestaña con aro blanco.
+
 ## v1.6 — 13/11/2026
 - La pestaña de ubicación muestra el nombre del lugar (ej. "📍 Maipú") y la cabecera dice "Maipú, Mendoza · Ubicación actual" (fuente: BigDataCloud).
 - Los lugares guardados muestran la localidad real en la cabecera.

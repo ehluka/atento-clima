@@ -263,9 +263,9 @@ const fmtAgo = ms => { const m = Math.max(0, Math.round((Date.now() - ms) / 60e3
 const COLOR = ['var(--ok)', 'var(--low)', 'var(--mid)', 'var(--high)'];
 
 function riskTile(name, key, r) {
-  const pips = [1, 2, 3].map(i => `<i style="background:${i <= r.lvl ? COLOR[r.lvl] : 'var(--chip)'}"></i>`).join('');
-  return `<div class="tile">${RISK_ICON[key]}<div class="muted">${name}</div>
-    <b style="color:${COLOR[r.lvl]}">${LVL[r.lvl]}</b><div class="pips">${pips}</div>
+  const pips = [1, 2, 3].map(i => `<i style="background:${i <= r.lvl ? COLOR[r.lvl] : 'var(--pip)'}"></i>`).join('');
+  return `<div class="tile ${key === 'hail' && r.lvl ? 'hot-' + r.lvl : ''}">${RISK_ICON[key]}<div class="muted">${name}</div>
+    <b class="t-${r.lvl}">${LVL[r.lvl]}</b><div class="pips">${pips}</div>
     <div class="muted small">${r.lvl ? fmtWhen(r.at) : '&nbsp;'}</div></div>`;
 }
 
@@ -277,10 +277,10 @@ function hourChart(hours) {
   const pts = hours.map((h, i) => `${x(i)},${y(h.temp).toFixed(1)}`).join(' ');
   let s = `<svg class="chart" width="${n * W}" height="196" viewBox="0 0 ${n * W} 196" role="img" aria-label="Pronóstico por hora">`;
   hours.forEach((h, i) => {
-    if (h.hail >= 2) s += `<rect x="${i * W + 2}" y="0" width="${W - 4}" height="196" rx="10" fill="var(--mid)" opacity=".16"/>`;
+    if (h.hail >= 2) s += `<rect x="${i * W + 3}" y="1" width="${W - 6}" height="194" rx="10" fill="${COLOR[h.hail]}" fill-opacity=".08" stroke="${COLOR[h.hail]}" stroke-width="2"/>`;
     const bar = Math.round((h.pp ?? 0) / 100 * 30);
-    s += `<text x="${x(i)}" y="14" class="c-muted">${i === 0 ? 'Ahora' : fmtH(h.t).slice(0, 2) + ' h'}</text>
-      <svg x="${x(i) - 17}" y="22" width="34" height="34" viewBox="0 0 64 64">${wxIcon(h.wc, h.day, 64).replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>
+    s += `<text x="${x(i)}" y="19" class="c-muted">${i === 0 ? 'Ahora' : fmtH(h.t).slice(0, 2) + ' h'}</text>
+       <svg x="${x(i) - 17}" y="25" width="34" height="34" viewBox="0 0 64 64">${wxIcon(h.wc, h.day, 64).replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>
       <rect x="${x(i) - 9}" y="${170 - bar}" width="18" height="${bar}" rx="4" fill="var(--accent)" opacity=".75"/>
       <text x="${x(i)}" y="186" class="c-rain">${h.pp ?? 0}%</text>`;
   });
@@ -352,14 +352,14 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
 
   // Por hora
   html += `<section class="card"><h3>Por hora</h3><div class="scroll">${hourChart(a.hours)}</div>
-    <p class="muted small">Barras: probabilidad de lluvia. En naranja, horas con riesgo de granizo.</p></section>`;
+    <p class="muted small">Barras azules: probabilidad de lluvia. Recuadro naranja o rojo: horas con riesgo de granizo.</p></section>`;
 
   // Próximos días
   const D = f.daily, lo = Math.min(...D.temperature_2m_min), hi = Math.max(...D.temperature_2m_max), rng = (hi - lo) || 1;
   html += `<section class="card"><h3>Próximos días</h3><ul class="list days">${D.time.map((t, i) => {
     const hl = a.dayHail[t] || 0, mn = D.temperature_2m_min[i], mx = D.temperature_2m_max[i];
-    return `<li><span class="d-name">${i === 0 ? 'Hoy' : fmtDay(new Date(t + 'T12:00'))}</span>${wxIcon(D.weather_code[i], 1, 34)}
-      <span class="d-rain">${D.precipitation_probability_max[i] ?? 0}%${hl ? `<span class="badge b-${hl}" title="Riesgo de granizo">🧊 ${LVL[hl]}</span>` : ''}</span>
+    return `<li><span class="d-name"><span>${i === 0 ? 'Hoy' : fmtDay(new Date(t + 'T12:00'))}</span>${hl ? `<span class="badge d-hail b-${hl}">🧊 ${LVL[hl]}</span>` : ''}</span>${wxIcon(D.weather_code[i], 1, 34)}
+      <span class="d-rain">${D.precipitation_probability_max[i] ?? 0}%</span>
       <span class="d-min">${Math.round(mn)}°</span>
       <span class="d-bar"><i style="left:${((mn - lo) / rng * 100).toFixed(0)}%;width:${Math.max(6, (mx - mn) / rng * 100).toFixed(0)}%"></i></span>
       <b class="d-max">${Math.round(mx)}°</b></li>`; }).join('')}</ul>
@@ -448,6 +448,7 @@ function applyTheme(announce) {
   if (cur) document.documentElement.dataset.theme = cur; else delete document.documentElement.dataset.theme;
   const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
   document.querySelectorAll('meta[name=theme-color]').forEach(m => { m.removeAttribute('media'); m.content = dark ? '#111315' : '#f4f6f8'; });
+  document.documentElement.classList.toggle('is-dark', dark);
   const b = $('#theme'); b.innerHTML = icon; b.setAttribute('aria-label', label); b.title = label;
   if (announce) toast(label);
 }

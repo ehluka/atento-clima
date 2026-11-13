@@ -11,7 +11,7 @@
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
-<script>try{var t=JSON.parse(localStorage.getItem("ac.theme"));if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>try{var t=JSON.parse(localStorage.getItem("ac.theme"));if(t)document.documentElement.dataset.theme=t;var d=t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("is-dark",d)}catch(e){}</script>
 </head>
 <body>
 <header class="top">
@@ -50,7 +50,7 @@
   Datos: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> ·
   <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">SMN</a> ·
   <a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener">USGS</a><br>
-  <a href="https://github.com/ehluka/atento-clima/blob/main/CHANGELOG.md" target="_blank" rel="noopener">v1.6 · Novedades</a><br>El riesgo de granizo es una estimación orientativa. Ante todo, seguí las alertas oficiales del SMN.
+  <a href="https://github.com/ehluka/atento-clima/blob/main/CHANGELOG.md" target="_blank" rel="noopener">v1.7 · Novedades</a><br>El riesgo de granizo es una estimación orientativa. Ante todo, seguí las alertas oficiales del SMN.
 </footer>
 
 <div id="toast" class="toast" role="status"></div>
