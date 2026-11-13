@@ -69,3 +69,14 @@ try:
     print(f"RRQPEF: bajado y abierto en {time.time()-t1:.1f} s")
 except Exception as e:
     print("RRQPEF lectura ERROR", e)
+
+# ¿qué productos hay en el bucket?
+xml = get(f"{B}/?list-type=2&delimiter=/").decode()
+print("PRODUCTOS:", [p for p in re.findall(r"<Prefix>([^<]+)</Prefix>", xml) if "RRQPE" in p or "GLM" in p or "ACH" in p or "DSI" in p])
+for prod in ("ABI-L2-RRQPEF",):
+    now = datetime.now(timezone.utc)
+    for d in range(0, 4):
+        t = now - timedelta(days=d)
+        ks = listing(f"{prod}/{t:%Y}/{t:%j}/")
+        print(f"{prod} día -{d}: {len(ks)} archivos", ks[-1] if ks else "")
+        if ks: break
