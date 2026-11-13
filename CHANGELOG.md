@@ -1,0 +1,38 @@
+# Historial de versiones — Atento Clima
+
+App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
+
+## v1.6 — 13/11/2026
+- La pestaña de ubicación muestra el nombre del lugar (ej. "📍 Maipú") y la cabecera dice "Maipú, Mendoza · Ubicación actual" (fuente: BigDataCloud).
+- Los lugares guardados muestran la localidad real en la cabecera.
+- Con la provincia del GPS, también se reconocen alertas oficiales que vienen sin zona dibujada.
+
+## v1.5 — 13/11/2026
+- Botón de tema: automático (sigue al celular) / claro / oscuro. Recuerda la elección.
+
+## v1.4 — 13/11/2026
+- Cartel para instalar la app: botón "Instalar" en Android; pasos (Compartir → Agregar a inicio) en iPhone.
+
+## v1.3 — 13/11/2026
+- El buscador de lugares muestra solo localidades de Argentina.
+- Probado y descartado: granizo con 3 modelos (GFS, ECMWF, ICON) y mapa de radar (RainViewer). Se quitaron porque confundían y no quedaban bien.
+
+## v1.2 — 13/11/2026
+- Avisos a muy corto plazo del SMN (tormenta en curso detectada por radar), destacados en rojo.
+- Alertas del SMN actualizadas cada 5 min (antes 15).
+- Corrección: el SMN publica las horas en UTC rotuladas como -03:00; las alertas se mostraban vigentes 3 h de más.
+- Rediseño: íconos del clima propios y animados, cabecera con color según el cielo, paneles de riesgo, gráfico por hora y pronóstico a 7 días con riesgo de granizo por día.
+
+## v1.1 — 13/11/2026
+- Descarga de alertas del SMN más confiable: reintentos y caché para no superar el límite de pedidos.
+
+## v1.0 — 13/11/2026
+- Primera versión: app web instalable y gratuita.
+- Ubicación por GPS + lugares guardados.
+- Riesgo estimado de granizo, tormenta y viento (Open-Meteo), alertas oficiales del SMN, pronóstico por hora y sismos cercanos (USGS).
+- Tema automático claro/oscuro.
+
+## Ideas pendientes
+- Calidad del aire / índice UV.
+- Incendios cercanos (NASA FIRMS, requiere clave gratuita).
+- Sismos del INPRES (a verificar si hay datos accesibles).

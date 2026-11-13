@@ -108,3 +108,6 @@ details summary{cursor:pointer}
 .theme-btn{font-size:1.05rem}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:.9rem;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20}
 .toast.on{opacity:.92}
+
+.hero-place{display:flex;align-items:center;gap:6px;font-weight:700;font-size:1rem;margin-bottom:6px;opacity:.97;flex-wrap:wrap}
+.hero-sub{font-weight:500;font-size:.78rem;padding:2px 8px;border-radius:999px;background:#fff3}

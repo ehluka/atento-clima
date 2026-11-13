@@ -1,7 +1,7 @@
 'use strict';
 /* Atento Clima — alertas por ubicación. Sin servidor: Open-Meteo, USGS y SMN (vía data/alerts.json). */
 
-const LS_PLACES = 'ac.places', LS_SEL = 'ac.sel', LS_CACHE = 'ac.cache.';
+const LS_PLACES = 'ac.places', LS_SEL = 'ac.sel', LS_CACHE = 'ac.cache.', LS_GEO = 'ac.geoname';
 const LVL = ['Sin riesgo', 'Bajo', 'Moderado', 'Alto'];
 const SMN_LVL = { 1: 'Amarillo', 2: 'Naranja', 3: 'Rojo' };
 
@@ -28,7 +28,8 @@ let smnCache = null;
 const levels = {}; // id -> max level, para el puntito del chip
 
 /* ---------- Lugares ---------- */
-function allPlaces() { return [{ id: 'gps', name: '📍 Mi ubicación', gps: true }, ...places]; }
+let gpsName = ls.get(LS_GEO, {});
+function allPlaces() { return [{ id: 'gps', name: '📍 ' + (gpsName.name || 'Mi ubicación'), gps: true, prov: gpsName.prov || '' }, ...places]; }
 
 function renderChips() {
   const nav = $('#places');
@@ -100,6 +101,20 @@ function getGPS() {
       e => rej(new Error(e.code === 1 ? 'Permiso de ubicación denegado.' : 'No se pudo obtener la ubicación.')),
       { enableHighAccuracy: false, timeout: 15000, maximumAge: 10 * 60 * 1000 });
   });
+}
+
+/* ---------- Nombre del lugar por GPS ---------- */
+async function placeName(lat, lon) {
+  const key = lat.toFixed(2) + ',' + lon.toFixed(2), c = ls.get(LS_GEO, {});
+  if (c.key === key) return c;
+  const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=es`);
+  const j = await r.json();
+  const adm = (j.localityInfo?.administrative || []).filter(a => a.adminLevel >= 5).sort((a, b) => b.adminLevel - a.adminLevel);
+  const name = j.city || j.locality || adm[0]?.name || '';
+  const prov = (j.principalSubdivision || '').replace(/^Provincia de /i, '');
+  const out = { key, name, prov };
+  if (name) ls.set(LS_GEO, out);
+  return out;
 }
 
 /* ---------- Datos ---------- */
@@ -296,7 +311,10 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
   let html = '';
   if (fromCache) html += `<div class="card muted">Sin conexión: mostrando datos guardados ${fmtAgo(fromCache)}.</div>`;
 
+  const where = place.gps ? (gpsName.name ? [gpsName.name, gpsName.prov].filter(Boolean).join(', ') : 'Tu ubicación') : (place.full || place.name);
   html += `<section class="hero ${skyClass(c.weather_code, day)}">
+    <div class="hero-place">${place.gps ? '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" fill="currentColor"/></svg>' : ''}
+      <span>${esc(where)}</span>${place.gps ? '<span class="hero-sub">Ubicación actual</span>' : ''}</div>
     <div class="hero-top"><div><div class="hero-t">${Math.round(c.temperature_2m)}°</div>
       <div class="hero-d">${esc(WMO[c.weather_code] || '')}</div></div>${wxIcon(c.weather_code, day, 112)}</div>
     <div class="hero-head"><span class="dotb" style="background:${COLOR[top]}"></span>${esc(head)}</div>
@@ -385,6 +403,10 @@ async function load() {
     if (place.gps) {
       try { coords = gpsCoords = await getGPS(); }
       catch (e) { if (!gpsCoords) throw Object.assign(e, { retry: true }); coords = gpsCoords; }
+      try {
+        const g = await placeName(coords.lat, coords.lon);
+        if (g.name) { gpsName = g; place.name = '📍 ' + g.name; place.prov = g.prov; renderChips(); }
+      } catch { }
     } else coords = { lat: place.lat, lon: place.lon };
 
     const [f, smn, q] = await Promise.allSettled([
