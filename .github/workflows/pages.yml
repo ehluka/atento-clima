@@ -15,11 +15,18 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 14
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Caché de alertas SMN ya descargadas
+        uses: actions/cache@v4
+        with:
+          path: .capcache
+          key: smn-${{ github.run_id }}
+          restore-keys: smn-
       - name: Descargar alertas SMN
         run: python3 scripts/smn.py data/alerts.json
       - name: Armar sitio

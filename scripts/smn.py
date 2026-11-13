@@ -1,6 +1,6 @@
 """Descarga las alertas oficiales del SMN (feed CAP) y las guarda en data/alerts.json
 para que la app las lea sin problemas de CORS. Corre en GitHub Actions."""
-import json, re, sys, urllib.request, xml.etree.ElementTree as ET
+import hashlib, json, os, re, sys, time, urllib.request, xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 FEED = "https://ssl.smn.gob.ar/CAP/AR.php"
@@ -69,6 +69,23 @@ def parse_alert(root, url=""):
             })
     return out
 
+CACHE = os.environ.get("CAP_CACHE", ".capcache")
+
+def get_cached(url):
+    """Los CAP de xml_generados tienen nombre único e inmutable: se bajan una sola vez."""
+    if "xml_generados" not in url:
+        return get(url)
+    p = os.path.join(CACHE, hashlib.sha1(url.encode()).hexdigest() + ".xml")
+    if os.path.exists(p):
+        with open(p, "rb") as f:
+            return f.read()
+    time.sleep(0.8)
+    data = get(url)
+    os.makedirs(CACHE, exist_ok=True)
+    with open(p, "wb") as f:
+        f.write(data)
+    return data
+
 def main():
     root = strip(ET.fromstring(get(FEED)))
     alerts = []
@@ -80,11 +97,15 @@ def main():
         links = [l for l in dict.fromkeys(links) if re.search(r"cap|\.xml|\.php", l, re.I) and l != FEED]
         from concurrent.futures import ThreadPoolExecutor
         def one(l):
-            import time; time.sleep(0.8)
             try:
-                return parse_alert(strip(ET.fromstring(get(l))), l)
+                return parse_alert(strip(ET.fromstring(get_cached(l))), l)
             except Exception as e:
                 print("skip", l, e, file=sys.stderr); return []
+        if os.path.isdir(CACHE):
+            keep = {hashlib.sha1(l.encode()).hexdigest() + ".xml" for l in links}
+            for fn in os.listdir(CACHE):
+                if fn not in keep:
+                    os.remove(os.path.join(CACHE, fn))
         with ThreadPoolExecutor(1) as ex:
             for r in ex.map(one, links[:300]):
                 alerts += r
