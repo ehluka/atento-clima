@@ -61,6 +61,25 @@ def level(info):
             return n
     return {"Extreme": 3, "Severe": 2}.get(txt(info, "severity"), 1)
 
+def fix_times(alerts):
+    """El SMN publica las horas en UTC pero rotuladas como -03:00. Si la hora de emisión
+    queda en el futuro, se reinterpretan todas las horas del aviso como UTC."""
+    now = datetime.now(timezone.utc)
+    def parse(v):
+        try:
+            return datetime.fromisoformat(v)
+        except (ValueError, TypeError):
+            return None
+    for a in alerts:
+        sent = parse(a.get("sent"))
+        shift = bool(sent and sent.tzinfo and (sent - now).total_seconds() > 600)
+        for k in ("sent", "onset", "expires"):
+            d = parse(a.get(k))
+            if d:
+                d = d.replace(tzinfo=timezone.utc) if (shift or d.tzinfo is None) else d.astimezone(timezone.utc)
+                a[k] = d.isoformat(timespec="seconds")
+    return alerts
+
 def parse_alert(root, url=""):
     out = []
     if txt(root, "msgType") == "Cancel" or txt(root, "status") not in ("", "Actual"):
@@ -94,7 +113,7 @@ def parse_alert(root, url=""):
                 "expires": txt(info, "expires"),
                 "url": txt(info, "web") or url,
             })
-    return out
+    return fix_times(out)
 
 def fetch_feed(kind, feed, used, done):
     root = strip(ET.fromstring(get(feed)))
