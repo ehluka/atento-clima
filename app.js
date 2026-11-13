@@ -64,12 +64,12 @@ $('#addForm').addEventListener('submit', e => e.preventDefault());
 async function search(q) {
   const ul = $('#results');
   try {
-    const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=es&format=json`);
+    const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=10&language=es&format=json&countryCode=AR`);
     const j = await r.json();
-    const res = (j.results || []).sort((a, b) => (b.country_code === 'AR') - (a.country_code === 'AR'));
+    const res = (j.results || []).filter(p => p.country_code === 'AR');
     if (!res.length) { ul.innerHTML = '<li class="muted">Sin resultados</li>'; return; }
     ul.innerHTML = res.map((p, i) =>
-      `<li tabindex="0" data-i="${i}"><b>${esc(p.name)}</b> <span class="muted">${esc([p.admin2, p.admin1, p.country].filter(Boolean).join(', '))}</span></li>`).join('');
+      `<li tabindex="0" data-i="${i}"><b>${esc(p.name)}</b> <span class="muted">${esc([p.admin2, p.admin1].filter(Boolean).join(', '))}</span></li>`).join('');
     ul.querySelectorAll('li[data-i]').forEach(li => {
       const pick = () => addPlace(res[+li.dataset.i]);
       li.onclick = pick; li.onkeydown = e => { if (e.key === 'Enter') pick(); };
@@ -116,6 +116,11 @@ function forecastURL(lat, lon) {
   return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=${c}&hourly=${h}&daily=${d}&timezone=auto&forecast_days=7`;
 }
 
+const MODELS = [['gfs_seamless', 'GFS'], ['ecmwf_ifs025', 'ECMWF'], ['icon_seamless', 'ICON']];
+function modelsURL(lat, lon) {
+  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=weather_code,precipitation,cape,lifted_index,freezing_level_height&models=${MODELS.map(m => m[0]).join(',')}&timezone=auto&forecast_days=7`;
+}
+
 function quakesURL(lat, lon) {
   const start = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
   return `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&latitude=${lat}&longitude=${lon}&maxradiuskm=400&minmagnitude=2.5&starttime=${start}&orderby=time&limit=15`;
@@ -132,10 +137,12 @@ async function getSMN() {
 // Granizo: inestabilidad (CAPE / índice de levantamiento) + altura de la isoterma 0 °C + código de tormenta con granizo.
 function hailLevel(x) {
   if (x.wc === 96 || x.wc === 99) return 3;
-  const li = x.li ?? -99, fl = x.fl ?? 0, cape = x.cape ?? 0, pp = x.pp ?? 0;
-  if (cape >= 2500 && li <= -5 && fl <= 4300 && pp >= 30) return 3;
-  if (cape >= 1500 && li <= -3 && fl <= 4500 && pp >= 30) return 2;
-  if ((cape >= 800 && li <= -1 && pp >= 30) || x.wc === 95) return 1;
+  // Si un modelo no trae índice de levantamiento o isoterma 0 °C, esa condición no se exige.
+  const cape = x.cape ?? 0, pp = x.pp ?? 0;
+  const li = v => x.li == null || x.li <= v, fl = v => x.fl == null || x.fl <= v;
+  if (cape >= 2500 && li(-5) && fl(4300) && pp >= 30) return 3;
+  if (cape >= 1500 && li(-3) && fl(4500) && pp >= 30) return 2;
+  if ((cape >= 800 && li(-1) && pp >= 30) || x.wc === 95) return 1;
   return 0;
 }
 function stormLevel(x) {
@@ -148,15 +155,32 @@ function stormLevel(x) {
 }
 const windLevel = g => g >= 90 ? 3 : g >= 70 ? 2 : g >= 50 ? 1 : 0;
 
-function analyze(f) {
+function analyze(f, m) {
   const H = f.hourly, now = Date.now(), off = offsetStr(f.utc_offset_seconds);
+  const mIdx = {};
+  (m?.hourly?.time || []).forEach((t, j) => mIdx[t] = j);
   const all = H.time.map((t, i) => ({
-    date: t.slice(0, 10), t: new Date(t + ':00' + off), wc: H.weather_code[i], day: H.is_day?.[i] ?? 1,
+    key: t, date: t.slice(0, 10), t: new Date(t + ':00' + off), wc: H.weather_code[i], day: H.is_day?.[i] ?? 1,
     temp: H.temperature_2m[i], pp: H.precipitation_probability[i], mm: H.precipitation[i],
     wind: H.wind_speed_10m[i], gust: H.wind_gusts_10m[i],
     cape: H.cape?.[i], li: H.lifted_index?.[i], fl: H.freezing_level_height?.[i]
   })).filter(h => h.t.getTime() > now - 3600e3);
-  all.forEach(h => h.hail = hailLevel(h));
+  // Granizo por modelo; se toma el nivel en el que coinciden al menos 2 de los 3.
+  const used = new Set();
+  all.forEach(h => {
+    h.main = hailLevel(h);
+    h.models = {};
+    const j = mIdx[h.key];
+    if (j != null) MODELS.forEach(([k]) => {
+      const g = n => m.hourly[`${n}_${k}`]?.[j];
+      if (g('weather_code') == null && g('cape') == null) return;
+      const mm = g('precipitation') ?? 0;
+      h.models[k] = hailLevel({ wc: g('weather_code'), cape: g('cape'), li: g('lifted_index'), fl: g('freezing_level_height'), pp: mm >= 0.2 ? 50 : 0 });
+      used.add(k);
+    });
+    const v = Object.values(h.models).sort((a, b) => b - a);
+    h.hail = v.length >= 2 ? v[1] : h.main;
+  });
   const hours = all.slice(0, 24);
   const dayHail = {};
   all.forEach(h => dayHail[h.date] = Math.max(dayHail[h.date] || 0, h.hail));
@@ -165,7 +189,9 @@ function analyze(f) {
     hours.forEach(h => { const l = fn(h); if (l > best.lvl) best = { lvl: l, at: h.t }; });
     return best;
   };
-  return { hours, dayHail, hail: risk(h => h.hail), storm: risk(stormLevel), wind: risk(h => windLevel(h.gust ?? 0)) };
+  const perModel = {};
+  MODELS.forEach(([k]) => { if (used.has(k)) perModel[k] = Math.max(0, ...hours.map(h => h.models[k] ?? 0)); });
+  return { hours, dayHail, perModel, hail: risk(h => h.hail), storm: risk(stormLevel), wind: risk(h => windLevel(h.gust ?? 0)) };
 }
 function offsetStr(s) {
   const sign = s < 0 ? '-' : '+', a = Math.abs(s);
@@ -275,8 +301,8 @@ function hourChart(hours) {
   return s + '</svg>';
 }
 
-function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
-  const a = analyze(f), c = f.current, day = c.is_day ?? 1;
+function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, models) {
+  const a = analyze(f, models), c = f.current, day = c.is_day ?? 1;
   // Datos SMN con error o con más de 2 h sin actualizar: no afirmar "sin alertas".
   if (!smnErr && (smnData?.error || !smnData?.updated || Date.now() - Date.parse(smnData.updated) > 2 * 3600e3)) smnErr = true;
   const hits = smnErr ? [] : smnFor(smnData, coords.lat, coords.lon, place.prov);
@@ -315,7 +341,17 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
   // Riesgo estimado
   html += `<section class="card"><h3>Riesgo estimado · próximas 24 h</h3>
     <div class="tiles">${riskTile('Granizo', 'hail', a.hail)}${riskTile('Tormenta', 'storm', a.storm)}${riskTile('Viento', 'wind', a.wind)}</div>
+    ${Object.keys(a.perModel).length ? `<div class="models"><span class="muted small">Granizo por modelo:</span>${MODELS.filter(([k]) => k in a.perModel).map(([k, n]) =>
+      `<span class="mchip"><i style="background:${COLOR[a.perModel[k]]}"></i>${n} <b>${LVL[a.perModel[k]]}</b></span>`).join('')}</div>
+      <p class="muted small">El riesgo de granizo se marca cuando coinciden al menos 2 de ${Object.keys(a.perModel).length} modelos.</p>` : ''}
     <p class="muted small">Estimación propia según el pronóstico. No reemplaza los avisos oficiales.</p></section>`;
+
+  // Radar
+  html += `<section class="card"><div class="row"><h3>Radar</h3><span class="muted small" id="radarTime"></span></div>
+    <div id="radar" class="radar"><p class="muted center">Cargando radar…</p></div>
+    <div class="radar-ctl"><button id="radarPlay" class="icon-btn" aria-label="Reproducir">▶</button>
+      <input type="range" id="radarSlider" min="0" max="0" value="0" aria-label="Momento del radar"></div>
+    <p class="muted small">Lluvia y tormentas detectadas por radar en las últimas 2 h. En rojo, zonas con aviso a muy corto plazo del SMN.</p></section>`;
 
   // Alertas oficiales
   html += `<section class="card alert lvl-${smnMax}"><h3>Alertas oficiales SMN</h3>`;
@@ -364,7 +400,64 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
   if (!place.gps) html += `<p class="center"><button class="btn ghost small" id="rmPlace">Quitar “${esc(place.name)}”</button></p>`;
 
   $('#main').innerHTML = html;
+  initRadar(coords, smnErr || acpStale ? [] : (smnData.alerts || []).filter(x => x.kind === 'acp'));
   const rm = $('#rmPlace'); if (rm) rm.onclick = () => removePlace(place.id);
+}
+
+/* ---------- Radar: RainViewer sobre mapa base CARTO/OpenStreetMap ---------- */
+let leafletP, radarMap, radarTimer;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve();
+  return leafletP ||= new Promise((res, rej) => {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet'; css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    document.head.appendChild(css);
+    const js = document.createElement('script');
+    js.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    js.onload = res; js.onerror = () => { leafletP = null; rej(new Error('leaflet')); };
+    document.head.appendChild(js);
+  });
+}
+function stopRadar() {
+  clearInterval(radarTimer); radarTimer = null;
+  if (radarMap) { radarMap.remove(); radarMap = null; }
+}
+async function initRadar(coords, acp) {
+  stopRadar();
+  const box = $('#radar');
+  try {
+    const [, rv] = await Promise.all([loadLeaflet(), getJSON('https://api.rainviewer.com/public/weather-maps.json')]);
+    if (!box.isConnected) return;
+    const frames = (rv.radar?.past || []).slice(-12);
+    if (!frames.length) throw new Error('sin cuadros');
+    box.innerHTML = '';
+    const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+    const map = radarMap = L.map(box, { zoomControl: true, scrollWheelZoom: false, attributionControl: true }).setView([coords.lat, coords.lon], 7);
+    L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark ? 'dark_all' : 'light_all'}/{z}/{x}/{y}{r}.png`, {
+      maxZoom: 12, subdomains: 'abcd', attribution: '© OpenStreetMap · © CARTO · RainViewer' }).addTo(map);
+    acp.forEach(x => (x.polygons || []).forEach(p => L.polygon(p, { color: '#dc2626', weight: 2, fillOpacity: .12 })
+      .bindPopup(esc(x.event || 'Aviso a muy corto plazo')).addTo(map)));
+    L.circleMarker([coords.lat, coords.lon], { radius: 7, color: '#fff', weight: 3, fillColor: '#2563eb', fillOpacity: 1 }).addTo(map);
+    const layers = frames.map(fr => L.tileLayer(`${rv.host}${fr.path}/256/{z}/{x}/{y}/2/1_1.png`,
+      { opacity: 0, maxNativeZoom: 7, maxZoom: 12, zIndex: 5 }).addTo(map));
+    const slider = $('#radarSlider'), play = $('#radarPlay'), label = $('#radarTime');
+    let cur = frames.length - 1;
+    const show = i => {
+      layers[cur].setOpacity(0); cur = i; layers[cur].setOpacity(.75);
+      slider.value = i; label.textContent = fmtH(new Date(frames[i].time * 1000)) + ' h';
+    };
+    slider.max = frames.length - 1; show(cur);
+    slider.oninput = () => { pause(); show(+slider.value); };
+    const pause = () => { clearInterval(radarTimer); radarTimer = null; play.textContent = '▶'; };
+    play.onclick = () => {
+      if (radarTimer) return pause();
+      play.textContent = '❚❚';
+      radarTimer = setInterval(() => show((cur + 1) % frames.length), 700);
+    };
+  } catch {
+    if (box.isConnected) box.innerHTML = '<p class="muted center">No se pudo cargar el radar.</p>';
+    const c = document.querySelector('.radar-ctl'); if (c) c.hidden = true;
+  }
 }
 
 function showMsg(msg, retry) {
@@ -387,17 +480,17 @@ async function load() {
       catch (e) { if (!gpsCoords) throw Object.assign(e, { retry: true }); coords = gpsCoords; }
     } else coords = { lat: place.lat, lon: place.lon };
 
-    const [f, smn, q] = await Promise.allSettled([
-      getJSON(forecastURL(coords.lat.toFixed(3), coords.lon.toFixed(3))), getSMN(),
-      getJSON(quakesURL(coords.lat.toFixed(3), coords.lon.toFixed(3)))]);
+    const la = coords.lat.toFixed(3), lo = coords.lon.toFixed(3);
+    const [f, smn, q, mo] = await Promise.allSettled([
+      getJSON(forecastURL(la, lo)), getSMN(), getJSON(quakesURL(la, lo)), getJSON(modelsURL(la, lo))]);
     if (seq !== loadSeq) return;
 
     if (f.status === 'fulfilled') {
-      ls.set(LS_CACHE + place.id, { t: Date.now(), f: f.value, coords, smn: smn.value, q: q.value });
-      render(place, f.value, smn.value, smn.status === 'rejected', q.value, q.status === 'rejected', coords, 0);
+      ls.set(LS_CACHE + place.id, { t: Date.now(), f: f.value, coords, smn: smn.value, q: q.value, mo: mo.value });
+      render(place, f.value, smn.value, smn.status === 'rejected', q.value, q.status === 'rejected', coords, 0, mo.value);
     } else {
       const c = ls.get(LS_CACHE + place.id);
-      if (c) render(place, c.f, c.smn, !c.smn, c.q, !c.q, c.coords, c.t);
+      if (c) render(place, c.f, c.smn, !c.smn, c.q, !c.q, c.coords, c.t, c.mo);
       else showMsg('No se pudo cargar el pronóstico. Revisá la conexión.', true);
     }
   } catch (e) {

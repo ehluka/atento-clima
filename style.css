@@ -97,3 +97,13 @@ details summary{cursor:pointer}
 .d-bar{position:relative;height:6px;border-radius:3px;background:var(--chip)}
 .d-bar i{position:absolute;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#38bdf8,#fbbf24,#f97316)}
 .badge{white-space:nowrap}
+
+/* ---------- v3: modelos y radar ---------- */
+.models{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0}
+.mchip{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border-radius:999px;padding:4px 10px;font-size:.85rem}
+.mchip i{width:9px;height:9px;border-radius:50%}
+.radar{height:300px;border-radius:14px;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.radar.leaflet-container{display:block}
+.radar-ctl{display:flex;gap:10px;align-items:center;margin-top:10px}
+.radar-ctl input{flex:1;accent-color:var(--accent)}
+.radar-ctl[hidden]{display:none}
