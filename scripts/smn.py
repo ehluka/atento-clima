@@ -8,7 +8,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else "data/alerts.json"
 UA = {"User-Agent": "AtentoClima/1.0 (+https://github.com/ehluka/atento-clima)"}
 
 def get(url):
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30) as r:
+    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=15) as r:
         return r.read()
 
 def strip(el):  # quita namespaces
@@ -71,11 +71,15 @@ def main():
         links = [l.get("href") for l in root.iter("link") if l.get("href")]
         links += [l.text.strip() for l in root.iter("link") if l.text and l.text.strip().startswith("http")]
         links = [l for l in dict.fromkeys(links) if re.search(r"cap|\.xml|\.php", l, re.I) and l != FEED]
-        for l in links[:300]:
+        from concurrent.futures import ThreadPoolExecutor
+        def one(l):
             try:
-                alerts += parse_alert(strip(ET.fromstring(get(l))), l)
+                return parse_alert(strip(ET.fromstring(get(l))), l)
             except Exception as e:
-                print("skip", l, e, file=sys.stderr)
+                print("skip", l, e, file=sys.stderr); return []
+        with ThreadPoolExecutor(8) as ex:
+            for r in ex.map(one, links[:300]):
+                alerts += r
     seen, uniq = set(), []
     for a in alerts:
         k = (a["event"], a["area"], a["onset"], a["expires"])
