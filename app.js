@@ -14,9 +14,6 @@ const WMO = {
   85: 'Chaparrones de nieve', 86: 'Chaparrones de nieve fuertes', 95: 'Tormenta',
   96: 'Tormenta con granizo', 99: 'Tormenta fuerte con granizo'
 };
-const ICON = c => c === 0 ? '☀️' : c <= 2 ? '🌤️' : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 67 ? '🌧️' :
-  c <= 77 ? '🌨️' : c <= 82 ? '🌦️' : c <= 86 ? '🌨️' : '⛈️';
-
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ls = {
@@ -113,10 +110,10 @@ async function getJSON(url) {
 }
 
 function forecastURL(lat, lon) {
-  const h = 'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,cape,lifted_index,freezing_level_height,uv_index';
+  const h = 'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,cape,lifted_index,freezing_level_height,is_day';
   const d = 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_gusts_10m_max,uv_index_max';
-  const c = 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_gusts_10m';
-  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=${c}&hourly=${h}&daily=${d}&timezone=auto&forecast_days=3&forecast_hours=48`;
+  const c = 'is_day,temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_gusts_10m';
+  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=${c}&hourly=${h}&daily=${d}&timezone=auto&forecast_days=7`;
 }
 
 function quakesURL(lat, lon) {
@@ -152,19 +149,23 @@ function stormLevel(x) {
 const windLevel = g => g >= 90 ? 3 : g >= 70 ? 2 : g >= 50 ? 1 : 0;
 
 function analyze(f) {
-  const H = f.hourly, now = Date.now();
-  const hours = H.time.map((t, i) => ({
-    t: new Date(t + ':00' + offsetStr(f.utc_offset_seconds)), wc: H.weather_code[i], temp: H.temperature_2m[i],
-    pp: H.precipitation_probability[i], mm: H.precipitation[i], wind: H.wind_speed_10m[i], gust: H.wind_gusts_10m[i],
-    cape: H.cape?.[i], li: H.lifted_index?.[i], fl: H.freezing_level_height?.[i], uv: H.uv_index?.[i]
-  })).filter(h => h.t.getTime() > now - 3600e3).slice(0, 24);
-  const risk = (fn, key) => {
+  const H = f.hourly, now = Date.now(), off = offsetStr(f.utc_offset_seconds);
+  const all = H.time.map((t, i) => ({
+    date: t.slice(0, 10), t: new Date(t + ':00' + off), wc: H.weather_code[i], day: H.is_day?.[i] ?? 1,
+    temp: H.temperature_2m[i], pp: H.precipitation_probability[i], mm: H.precipitation[i],
+    wind: H.wind_speed_10m[i], gust: H.wind_gusts_10m[i],
+    cape: H.cape?.[i], li: H.lifted_index?.[i], fl: H.freezing_level_height?.[i]
+  })).filter(h => h.t.getTime() > now - 3600e3);
+  all.forEach(h => h.hail = hailLevel(h));
+  const hours = all.slice(0, 24);
+  const dayHail = {};
+  all.forEach(h => dayHail[h.date] = Math.max(dayHail[h.date] || 0, h.hail));
+  const risk = fn => {
     let best = { lvl: 0, at: null };
-    hours.forEach(h => { const l = fn(key ? h[key] ?? 0 : h); if (l > best.lvl) best = { lvl: l, at: h.t }; });
+    hours.forEach(h => { const l = fn(h); if (l > best.lvl) best = { lvl: l, at: h.t }; });
     return best;
   };
-  hours.forEach(h => h.hail = hailLevel(h));
-  return { hours, hail: risk(hailLevel), storm: risk(stormLevel), wind: risk(windLevel, 'gust') };
+  return { hours, dayHail, hail: risk(h => h.hail), storm: risk(stormLevel), wind: risk(h => windLevel(h.gust ?? 0)) };
 }
 function offsetStr(s) {
   const sign = s < 0 ? '-' : '+', a = Math.abs(s);
@@ -197,6 +198,44 @@ function distKm(a, b, c, d) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
+/* ---------- Íconos del clima (SVG propios) ---------- */
+const CLOUD = 'M18 44a10 10 0 0 1 1.5-19.9A14 14 0 0 1 46 22a11 11 0 0 1 0 22z';
+function wxIcon(code, day = 1, size = 64) {
+  const rays = [0, 45, 90, 135, 180, 225, 270, 315].map(a => `<line x1="0" y1="-13" x2="0" y2="-17" transform="rotate(${a})"/>`).join('');
+  const sun = (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})"><g class="wx-spin" stroke="#fbbf24" stroke-width="3" stroke-linecap="round">${rays}</g><circle r="9" fill="#fbbf24"/></g>`;
+  const moon = (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})"><path d="M4-11A11 11 0 1 0 11 6 9.5 9.5 0 0 1 4-11z" fill="#e2e8f0"/></g>`;
+  const orb = (x, y, k) => day ? sun(x, y, k) : moon(x, y, k);
+  const cloud = (dy = 0, fill = '#cbd5e1', dx = 0, k = 1) => `<path d="${CLOUD}" fill="${fill}" transform="translate(${dx} ${dy}) scale(${k})"/>`;
+  const drops = n => Array.from({ length: n }, (_, i) => { const x = 32 + (i - (n - 1) / 2) * 11;
+    return `<line class="wx-fall" style="animation-delay:${-i * .3}s" x1="${x}" y1="43" x2="${x - 3}" y2="51" stroke="#60a5fa" stroke-width="3" stroke-linecap="round"/>`; }).join('');
+  const flakes = n => Array.from({ length: n }, (_, i) => `<circle class="wx-fall" style="animation-delay:${-i * .4}s" cx="${32 + (i - (n - 1) / 2) * 11}" cy="47" r="2.4" fill="#e0f2fe" stroke="#93c5fd"/>`).join('');
+  const bolt = `<path class="wx-flash" d="M33 33l-7 12h6l-3 11 11-15h-6l4-8z" fill="#facc15"/>`;
+  const hail = [[19, 49], [45, 50], [38, 58]].map(([x, y], i) => `<circle class="wx-fall" style="animation-delay:${-i * .35}s" cx="${x}" cy="${y}" r="3" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1.2"/>`).join('');
+  const fog = [48, 55].map(y => `<line x1="14" y1="${y}" x2="50" y2="${y}" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>`).join('');
+  let g;
+  if (code === 0) g = orb(32, 32, 1.35);
+  else if (code <= 2) g = orb(23, 23, .95) + cloud(6, '#e2e8f0', 6, .9);
+  else if (code === 3) g = cloud(-2, '#94a3b8', 12, .7) + cloud(6);
+  else if (code <= 48) g = cloud(-6) + fog;
+  else if (code <= 57) g = cloud(-8) + drops(2);
+  else if (code <= 67 || (code >= 80 && code <= 82)) g = cloud(-8, code === 65 || code === 82 ? '#94a3b8' : '#cbd5e1') + drops(3);
+  else if (code <= 77 || code === 85 || code === 86) g = cloud(-8) + flakes(3);
+  else if (code === 95) g = cloud(-10, '#64748b') + bolt;
+  else g = cloud(-10, '#64748b') + bolt + hail;
+  return `<svg class="wx" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${g}</svg>`;
+}
+const RISK_ICON = {
+  hail: `<svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true"><path d="${CLOUD}" fill="#94a3b8" transform="translate(0 -10)"/>${[[20, 46], [32, 52], [44, 46]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="4.5" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.5"/>`).join('')}</svg>`,
+  storm: `<svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true"><path d="${CLOUD}" fill="#64748b" transform="translate(0 -10)"/><path d="M33 33l-7 12h6l-3 11 11-15h-6l4-8z" fill="#facc15"/></svg>`,
+  wind: `<svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true" fill="none" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"><path d="M8 24h30a7 7 0 1 0-7-7"/><path d="M8 34h42a7 7 0 1 1-7 7"/><path d="M8 44h20"/></svg>`
+};
+function skyClass(code, day) {
+  if (code >= 95) return 'sky-storm';
+  if (code >= 51) return 'sky-rain';
+  if (code >= 3) return 'sky-cloud';
+  return day ? 'sky-day' : 'sky-night';
+}
+
 /* ---------- Render ---------- */
 const fmtH = d => d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
 const fmtDay = d => d.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' });
@@ -205,71 +244,120 @@ const fmtWhen = d => {
   const today = new Date().toDateString() === d.toDateString();
   return (today ? 'hoy' : fmtDay(d)) + ' ' + fmtH(d) + ' h';
 };
-const fmtAgo = ms => { const m = Math.round((Date.now() - ms) / 60e3); return m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
+const fmtAgo = ms => { const m = Math.max(0, Math.round((Date.now() - ms) / 60e3)); return m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
+const COLOR = ['var(--ok)', 'var(--low)', 'var(--mid)', 'var(--high)'];
 
-function riskRow(name, icon, r) {
-  return `<li class="row"><span>${icon} ${name}</span><span>${r.lvl ? `<span class="muted">${fmtWhen(r.at)}</span> ` : ''}<span class="badge b-${r.lvl}">${LVL[r.lvl]}</span></span></li>`;
+function riskTile(name, key, r) {
+  const pips = [1, 2, 3].map(i => `<i style="background:${i <= r.lvl ? COLOR[r.lvl] : 'var(--chip)'}"></i>`).join('');
+  return `<div class="tile">${RISK_ICON[key]}<div class="muted">${name}</div>
+    <b style="color:${COLOR[r.lvl]}">${LVL[r.lvl]}</b><div class="pips">${pips}</div>
+    <div class="muted small">${r.lvl ? fmtWhen(r.at) : '&nbsp;'}</div></div>`;
+}
+
+function hourChart(hours) {
+  const W = 58, n = hours.length, top = 78, span = 44;
+  const ts = hours.map(h => h.temp), mn = Math.min(...ts), mx = Math.max(...ts);
+  const y = t => top + span - (t - mn) / ((mx - mn) || 1) * span;
+  const x = i => i * W + W / 2;
+  const pts = hours.map((h, i) => `${x(i)},${y(h.temp).toFixed(1)}`).join(' ');
+  let s = `<svg class="chart" width="${n * W}" height="196" viewBox="0 0 ${n * W} 196" role="img" aria-label="Pronóstico por hora">`;
+  hours.forEach((h, i) => {
+    if (h.hail >= 2) s += `<rect x="${i * W + 2}" y="0" width="${W - 4}" height="196" rx="10" fill="var(--mid)" opacity=".16"/>`;
+    const bar = Math.round((h.pp ?? 0) / 100 * 30);
+    s += `<text x="${x(i)}" y="14" class="c-muted">${i === 0 ? 'Ahora' : fmtH(h.t).slice(0, 2) + ' h'}</text>
+      <svg x="${x(i) - 17}" y="22" width="34" height="34" viewBox="0 0 64 64">${wxIcon(h.wc, h.day, 64).replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>
+      <rect x="${x(i) - 9}" y="${170 - bar}" width="18" height="${bar}" rx="4" fill="var(--accent)" opacity=".75"/>
+      <text x="${x(i)}" y="186" class="c-rain">${h.pp ?? 0}%</text>`;
+  });
+  s += `<polyline points="${pts}" fill="none" stroke="var(--line2)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  hours.forEach((h, i) => s += `<circle cx="${x(i)}" cy="${y(h.temp).toFixed(1)}" r="3.5" fill="var(--card)" stroke="var(--text)" stroke-width="2"/>
+    <text x="${x(i)}" y="${(y(h.temp) - 9).toFixed(1)}" class="c-temp">${Math.round(h.temp)}°</text>`);
+  return s + '</svg>';
 }
 
 function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
-  const a = analyze(f), c = f.current;
+  const a = analyze(f), c = f.current, day = c.is_day ?? 1;
   // Datos SMN con error o con más de 2 h sin actualizar: no afirmar "sin alertas".
   if (!smnErr && (smnData?.error || !smnData?.updated || Date.now() - Date.parse(smnData.updated) > 2 * 3600e3)) smnErr = true;
-  const smn = smnErr ? [] : smnFor(smnData, coords.lat, coords.lon, place.prov);
+  const hits = smnErr ? [] : smnFor(smnData, coords.lat, coords.lon, place.prov);
+  const acpStale = !smnErr && (smnData.acp_error || Date.now() - Date.parse(smnData.updated) > 30 * 60e3);
+  const acp = acpStale ? [] : hits.filter(x => x.kind === 'acp');
+  const smn = hits.filter(x => x.kind !== 'acp');
   const smnMax = smn.reduce((m, x) => Math.max(m, x.level || 1), 0);
-  const top = Math.max(a.hail.lvl, a.storm.lvl, a.wind.lvl, smnMax);
+  const top = Math.max(a.hail.lvl, a.storm.lvl, a.wind.lvl, smnMax, acp.length ? 3 : 0);
   levels[place.id] = top; renderChips();
+
+  const head = acp.length ? 'Tormenta fuerte en curso en tu zona'
+    : a.hail.lvl ? `Riesgo ${LVL[a.hail.lvl].toLowerCase()} de granizo ${fmtWhen(a.hail.at)}`
+    : a.storm.lvl ? `Riesgo ${LVL[a.storm.lvl].toLowerCase()} de tormenta ${fmtWhen(a.storm.at)}`
+    : a.wind.lvl ? `Ráfagas fuertes ${fmtWhen(a.wind.at)}`
+    : smnMax ? 'Alerta oficial vigente' : 'Sin riesgos a la vista en 24 h';
 
   let html = '';
   if (fromCache) html += `<div class="card muted">Sin conexión: mostrando datos guardados ${fmtAgo(fromCache)}.</div>`;
 
-  html += `<section class="card now">
-    <div><div class="t">${Math.round(c.temperature_2m)}°</div><div class="muted">Sensación ${Math.round(c.apparent_temperature)}°</div></div>
-    <div class="d"><div style="font-size:2rem">${ICON(c.weather_code)}</div>${esc(WMO[c.weather_code] || '')}<br>
-    Viento ${Math.round(c.wind_speed_10m)} km/h · ráfagas ${Math.round(c.wind_gusts_10m)}<br>Humedad ${c.relative_humidity_2m}%</div>
+  html += `<section class="hero ${skyClass(c.weather_code, day)}">
+    <div class="hero-top"><div><div class="hero-t">${Math.round(c.temperature_2m)}°</div>
+      <div class="hero-d">${esc(WMO[c.weather_code] || '')}</div></div>${wxIcon(c.weather_code, day, 112)}</div>
+    <div class="hero-head"><span class="dotb" style="background:${COLOR[top]}"></span>${esc(head)}</div>
+    <div class="hero-meta"><span>Sensación <b>${Math.round(c.apparent_temperature)}°</b></span>
+      <span>Viento <b>${Math.round(c.wind_speed_10m)}</b> km/h</span><span>Ráfagas <b>${Math.round(c.wind_gusts_10m)}</b></span>
+      <span>Humedad <b>${c.relative_humidity_2m}%</b></span></div>
   </section>`;
+
+  // Avisos a muy corto plazo (tormenta ya en curso, detectada por radar)
+  acp.forEach(x => html += `<section class="card acp"><div class="acp-tag"><span class="pulse"></span>AVISO A MUY CORTO PLAZO · SMN</div>
+    <h3>${esc(x.event || x.headline)}</h3>
+    ${x.description ? `<p>${esc(x.description)}</p>` : ''}
+    <p class="muted">${x.expires ? 'Válido hasta ' + fmtWhen(new Date(x.expires)) + '. ' : ''}${x.area ? 'Zona: ' + esc(x.area.slice(0, 160)) + '.' : ''}</p>
+    ${x.instruction ? `<details><summary class="muted">Qué hacer</summary><p>${esc(x.instruction)}</p></details>` : ''}</section>`);
+
+  // Riesgo estimado
+  html += `<section class="card"><h3>Riesgo estimado · próximas 24 h</h3>
+    <div class="tiles">${riskTile('Granizo', 'hail', a.hail)}${riskTile('Tormenta', 'storm', a.storm)}${riskTile('Viento', 'wind', a.wind)}</div>
+    <p class="muted small">Estimación propia según el pronóstico. No reemplaza los avisos oficiales.</p></section>`;
 
   // Alertas oficiales
   html += `<section class="card alert lvl-${smnMax}"><h3>Alertas oficiales SMN</h3>`;
   if (smnErr) html += `<p class="muted">No se pudieron leer las alertas del SMN. <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">Ver en smn.gob.ar</a></p>`;
-  else if (!smn.length) html += `<p class="muted">Sin alertas vigentes para este lugar.${smnData?.updated ? ` Actualizado ${fmtAgo(Date.parse(smnData.updated))}.` : ''}</p>`;
-  else html += `<ul class="list">${smn.map(x => `<li>
+  else {
+    if (!smn.length) html += `<p class="muted">Sin alertas vigentes para este lugar.</p>`;
+    else html += `<ul class="list">${smn.map(x => `<li>
       <div class="row"><b>${esc(x.event)}</b><span class="badge b-${x.level || 1}">${SMN_LVL[x.level] || esc(x.severity)}</span></div>
       <div class="muted">${x.onset ? 'Desde ' + fmtWhen(new Date(x.onset)) : ''}${x.expires ? ' · hasta ' + fmtWhen(new Date(x.expires)) : ''}</div>
       ${x.description ? `<details><summary class="muted">Detalle</summary><p>${esc(x.description)}</p></details>` : ''}
-    </li>`).join('')}</ul><p class="muted"><a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">Ver en smn.gob.ar</a></p>`;
+    </li>`).join('')}</ul>`;
+    html += `<p class="muted small">${acp.length ? '' : acpStale ? 'Avisos a muy corto plazo: no disponibles ahora. ' : 'Sin avisos a muy corto plazo en tu zona. '}Actualizado ${fmtAgo(Date.parse(smnData.updated))} ·
+      <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">smn.gob.ar</a></p>`;
+  }
   html += `</section>`;
 
-  // Riesgo estimado
-  html += `<section class="card alert lvl-${Math.max(a.hail.lvl, a.storm.lvl, a.wind.lvl)}"><h3>Riesgo estimado · próximas 24 h</h3>
-    <ul class="list">${riskRow('Granizo', '🧊', a.hail)}${riskRow('Tormenta', '⛈️', a.storm)}${riskRow('Viento fuerte', '💨', a.wind)}</ul>
-    <p class="muted">Estimación propia según el pronóstico. No reemplaza las alertas oficiales.</p></section>`;
-
   // Por hora
-  html += `<section class="card"><h3>Por hora</h3><div class="hours">${a.hours.map(h => `
-    <div class="h ${h.hail >= 2 ? 'risk' : ''}" title="${esc(WMO[h.wc] || '')}">
-      <div class="muted">${fmtH(h.t).slice(0, 2)} h</div><div>${ICON(h.wc)}</div><b>${Math.round(h.temp)}°</b>
-      <div class="rain">${h.pp ?? 0}%</div><div class="muted">${Math.round(h.gust)}</div></div>`).join('')}
-    </div><p class="muted">💧 probabilidad de lluvia · abajo, ráfagas en km/h. En naranja, horas con riesgo de granizo.</p></section>`;
+  html += `<section class="card"><h3>Por hora</h3><div class="scroll">${hourChart(a.hours)}</div>
+    <p class="muted small">Barras: probabilidad de lluvia. En naranja, horas con riesgo de granizo.</p></section>`;
 
   // Próximos días
-  const D = f.daily;
-  html += `<section class="card"><h3>Próximos días</h3><ul class="list">${D.time.map((t, i) => `
-    <li class="row"><span>${ICON(D.weather_code[i])} ${i === 0 ? 'Hoy' : fmtDay(new Date(t + 'T12:00'))}</span>
-    <span class="muted">${D.precipitation_probability_max[i] ?? 0}% · ${(D.precipitation_sum[i] ?? 0).toFixed(1)} mm · UV ${Math.round(D.uv_index_max?.[i] ?? 0)}</span>
-    <span><b>${Math.round(D.temperature_2m_max[i])}°</b> / ${Math.round(D.temperature_2m_min[i])}°</span></li>`).join('')}</ul></section>`;
+  const D = f.daily, lo = Math.min(...D.temperature_2m_min), hi = Math.max(...D.temperature_2m_max), rng = (hi - lo) || 1;
+  html += `<section class="card"><h3>Próximos días</h3><ul class="list days">${D.time.map((t, i) => {
+    const hl = a.dayHail[t] || 0, mn = D.temperature_2m_min[i], mx = D.temperature_2m_max[i];
+    return `<li><span class="d-name">${i === 0 ? 'Hoy' : fmtDay(new Date(t + 'T12:00'))}</span>${wxIcon(D.weather_code[i], 1, 34)}
+      <span class="d-rain">${D.precipitation_probability_max[i] ?? 0}%${hl ? `<span class="badge b-${hl}" title="Riesgo de granizo">🧊 ${LVL[hl]}</span>` : ''}</span>
+      <span class="d-min">${Math.round(mn)}°</span>
+      <span class="d-bar"><i style="left:${((mn - lo) / rng * 100).toFixed(0)}%;width:${Math.max(6, (mx - mn) / rng * 100).toFixed(0)}%"></i></span>
+      <b class="d-max">${Math.round(mx)}°</b></li>`; }).join('')}</ul>
+    <p class="muted small">% de lluvia · 🧊 riesgo estimado de granizo ese día.</p></section>`;
 
   // Sismos
   html += `<section class="card"><h3>Sismos cercanos · últimos 7 días</h3>`;
   if (qErr) html += `<p class="muted">No se pudieron leer los sismos.</p>`;
   else {
     const list = (quakes?.features || []).map(q => ({
-      mag: q.properties.mag, place: q.properties.place, t: q.properties.time, url: q.properties.url,
+      mag: q.properties.mag, t: q.properties.time,
       km: distKm(coords.lat, coords.lon, q.geometry.coordinates[1], q.geometry.coordinates[0])
     }));
     html += !list.length ? `<p class="muted">Sin sismos de magnitud 2,5 o más a menos de 400 km.</p>` :
       `<ul class="list">${list.map(q => `<li class="row"><span><span class="badge b-${q.mag >= 5 ? 3 : q.mag >= 4 ? 2 : 1}">M ${q.mag.toFixed(1)}</span>
-        ${Math.round(q.km)} km</span><span class="muted">${fmtAgo(q.t)}</span></li>`).join('')}</ul>`;
+        a ${Math.round(q.km)} km</span><span class="muted">${fmtAgo(q.t)}</span></li>`).join('')}</ul>`;
   }
   html += `</section>`;
 

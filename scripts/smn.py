@@ -96,7 +96,7 @@ def parse_alert(root, url=""):
             })
     return out
 
-def fetch_feed(kind, feed, used):
+def fetch_feed(kind, feed, used, done):
     root = strip(ET.fromstring(get(feed)))
     alerts = []
     if root.tag == "alert":
@@ -108,18 +108,25 @@ def fetch_feed(kind, feed, used):
         print(f"[{kind}] {len(links)} avisos en el índice; ej: {links[:2]}")
         for l in links[:300]:
             used.add(cache_name(l))
+            if l in done:  # el feed general repite los avisos a muy corto plazo
+                continue
+            done.add(l)
             try:
-                alerts += parse_alert(strip(ET.fromstring(get_cached(l))), l)
+                got = parse_alert(strip(ET.fromstring(get_cached(l))), l)
             except Exception as e:
-                print(f"[{kind}] skip", l, e, file=sys.stderr)
+                print(f"[{kind}] skip", l, e, file=sys.stderr); continue
+            for a in got:
+                a["kind"] = "acp" if "avisocortoplazo" in l else "alerta"
+            alerts += got
     seen, uniq = set(), []
     for a in alerts:
-        a["kind"] = kind
+        a.setdefault("kind", kind)
         k = (a["event"], a["area"], a["onset"], a["expires"], json.dumps(a["polygons"])[:200])
         if k not in seen:
             seen.add(k); uniq.append(a)
     if uniq:
         s = uniq[0]
+        print(f"[{kind}] sent={s['sent']} onset={s['onset']} expires={s['expires']} url={s['url'][-40:]} desc={s['description'][:300]!r}")
         print(f"[{kind}] {len(uniq)} vigentes; ej: {s['event']!r} | {s['area'][:80]!r} | polígonos={len(s['polygons'])} | vence={s['expires']}")
     else:
         print(f"[{kind}] 0 vigentes")
@@ -128,10 +135,10 @@ def fetch_feed(kind, feed, used):
 if __name__ == "__main__":
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     data = {"updated": now, "alerts": []}
-    used = set()
+    used, done = set(), set()
     for kind, feed in FEEDS:
         try:
-            data["alerts"] += fetch_feed(kind, feed, used)
+            data["alerts"] += fetch_feed(kind, feed, used, done)
         except Exception as e:
             print(f"[{kind}] ERROR {e}", file=sys.stderr)
             data["error" if kind == "alerta" else "acp_error"] = str(e)[:300]

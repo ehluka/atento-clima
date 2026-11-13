@@ -54,3 +54,46 @@ input{display:block;width:100%;margin-top:4px;padding:10px 12px;border-radius:10
 .results li:hover,.results li:focus{background:var(--chip)}
 .foot{padding:8px 16px 24px;text-align:center;max-width:720px;margin:0 auto;font-size:.8rem}
 details summary{cursor:pointer}
+
+/* ---------- v2: más gráfico ---------- */
+:root{--line2:#94a3b8}
+.small{font-size:.8rem}
+.hero{border-radius:22px;padding:18px 18px 14px;margin-bottom:12px;color:#fff;box-shadow:0 8px 24px #0003}
+.sky-day{background:linear-gradient(160deg,#1d4ed8,#38bdf8)}
+.sky-night{background:linear-gradient(160deg,#0b1026,#1e3a8a)}
+.sky-cloud{background:linear-gradient(160deg,#475569,#94a3b8)}
+.sky-rain{background:linear-gradient(160deg,#1e293b,#5b7391)}
+.sky-storm{background:linear-gradient(160deg,#1e1b4b,#6d28d9)}
+.hero-top{display:flex;justify-content:space-between;align-items:center}
+.hero-t{font-size:4.6rem;font-weight:800;line-height:1;letter-spacing:-2px}
+.hero-d{font-size:1.1rem;opacity:.95;margin-top:4px}
+.hero-head{margin:14px 0 12px;padding:10px 12px;border-radius:12px;background:#0003;font-weight:700;display:flex;gap:8px;align-items:center}
+.dotb{flex:none;width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 3px #fff5}
+.hero-meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:.9rem;opacity:.95}
+.wx{flex:none;overflow:visible;filter:drop-shadow(0 2px 4px #0003)}
+.wx-spin{animation:spin 24s linear infinite}
+.wx-fall{animation:fall 1.4s linear infinite}
+.wx-flash{animation:flash 3s ease-in-out infinite}
+@keyframes fall{0%{transform:translateY(-3px);opacity:0}30%{opacity:1}100%{transform:translateY(7px);opacity:0}}
+@keyframes flash{0%,86%,100%{opacity:1}90%{opacity:.25}94%{opacity:1}97%{opacity:.4}}
+@media (prefers-reduced-motion:reduce){.wx-spin,.wx-fall,.wx-flash,.pulse{animation:none}}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.tile{background:var(--bg);border-radius:14px;padding:10px 6px;text-align:center}
+.tile b{display:block;font-size:1.05rem}
+.pips{display:flex;gap:4px;justify-content:center;margin:6px 0 4px}
+.pips i{width:22px;height:6px;border-radius:3px}
+.acp{border:2px solid var(--high);background:color-mix(in srgb,var(--high) 10%,var(--card))}
+.acp-tag{font-size:.75rem;font-weight:800;letter-spacing:.5px;color:var(--high);display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pulse{width:10px;height:10px;border-radius:50%;background:var(--high);animation:pulse 1.4s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--high) 70%,transparent)}100%{box-shadow:0 0 0 10px transparent}}
+.scroll{overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chart{display:block}
+.chart text{text-anchor:middle;font-size:12px;font-family:inherit}
+.c-muted{fill:var(--muted)}.c-rain{fill:var(--accent)}.c-temp{fill:var(--text);font-weight:700;font-size:13px!important}
+.days li{display:grid;grid-template-columns:4.6em 34px 1fr 2.2em minmax(60px,1.2fr) 2.2em;align-items:center;gap:8px}
+.d-name{text-transform:capitalize}
+.d-rain{color:var(--accent);font-size:.85rem;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.d-min{color:var(--muted);text-align:right}
+.d-bar{position:relative;height:6px;border-radius:3px;background:var(--chip)}
+.d-bar i{position:absolute;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#38bdf8,#fbbf24,#f97316)}
+.badge{white-space:nowrap}
