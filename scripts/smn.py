@@ -16,7 +16,7 @@ def get(url, tries=4):
         except urllib.error.HTTPError as e:
             if e.code != 429 or n == tries - 1:
                 raise
-            time.sleep(2 * (n + 1))
+            time.sleep(5 * 2 ** n)
 
 def strip(el):  # quita namespaces
     for e in el.iter():
@@ -80,11 +80,12 @@ def main():
         links = [l for l in dict.fromkeys(links) if re.search(r"cap|\.xml|\.php", l, re.I) and l != FEED]
         from concurrent.futures import ThreadPoolExecutor
         def one(l):
+            import time; time.sleep(0.8)
             try:
                 return parse_alert(strip(ET.fromstring(get(l))), l)
             except Exception as e:
                 print("skip", l, e, file=sys.stderr); return []
-        with ThreadPoolExecutor(2) as ex:
+        with ThreadPoolExecutor(1) as ex:
             for r in ex.map(one, links[:300]):
                 alerts += r
     seen, uniq = set(), []
