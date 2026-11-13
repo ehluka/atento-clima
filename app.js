@@ -411,6 +411,31 @@ async function load() {
 $('#refresh').onclick = () => { smnCache = null; load(); };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
 
+/* ---------- Tema: automático / claro / oscuro ---------- */
+const LS_THEME = 'ac.theme';
+const AUTO_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg>';
+const THEMES = [[null, AUTO_ICON, 'Tema automático (según el celular)'], ['light', '☀️', 'Tema claro'], ['dark', '🌙', 'Tema oscuro']];
+let toastT;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1600);
+}
+function applyTheme(announce) {
+  const cur = ls.get(LS_THEME, null);
+  const [, icon, label] = THEMES.find(x => x[0] === cur) || THEMES[0];
+  if (cur) document.documentElement.dataset.theme = cur; else delete document.documentElement.dataset.theme;
+  const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.querySelectorAll('meta[name=theme-color]').forEach(m => { m.removeAttribute('media'); m.content = dark ? '#111315' : '#f4f6f8'; });
+  const b = $('#theme'); b.innerHTML = icon; b.setAttribute('aria-label', label); b.title = label;
+  if (announce) toast(label);
+}
+$('#theme').onclick = () => {
+  const cur = ls.get(LS_THEME, null), i = THEMES.findIndex(x => x[0] === cur);
+  ls.set(LS_THEME, THEMES[(i + 1) % THEMES.length][0]); applyTheme(true);
+};
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme(false));
+applyTheme(false);
+
 /* ---------- Instalar como app ---------- */
 const LS_INSTALL = 'ac.installHidden';
 let installEvt = null;

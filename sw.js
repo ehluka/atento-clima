@@ -1,5 +1,5 @@
 // Atento Clima: guarda la app para abrir sin conexión; los datos siempre se piden a la red.
-const V = 'ac-v5';
+const V = 'ac-v6';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
