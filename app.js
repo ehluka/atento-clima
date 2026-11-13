@@ -336,7 +336,7 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
     <p class="muted small">Estimación propia según el pronóstico. No reemplaza los avisos oficiales.</p></section>`;
 
   // Alertas oficiales
-  html += `<section class="card alert lvl-${smnMax}"><h3>Alertas oficiales SMN</h3>`;
+  html += `<section class="card alert lvl-${smnMax}"><h3 class="h-sub">Alertas oficiales<small>Servicio Meteorológico Nacional (SMN)</small></h3>`;
   if (smnErr) html += `<p class="muted">No se pudieron leer las alertas del SMN. <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">Ver en smn.gob.ar</a></p>`;
   else {
     if (!smn.length) html += `<p class="muted">Sin alertas vigentes para este lugar.</p>`;

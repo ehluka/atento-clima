@@ -2,6 +2,9 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.9 — 13/11/2026
+- La tarjeta de alertas se titula "Alertas oficiales" con el subtítulo "Servicio Meteorológico Nacional (SMN)".
+
 ## v1.8 — 13/11/2026
 - Niveles de granizo bien diferenciados: bajo en amarillo, moderado en naranja, alto en rojo (fichas, etiquetas y gráfico por hora), en modo claro y oscuro.
 - Etiquetas amarillas y naranjas con texto oscuro para que se lean bien.

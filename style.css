@@ -122,3 +122,4 @@ html:not(.is-dark) .card svg path[d^="M18 44"]{stroke:#64748b;stroke-width:1.4}
 .tile.hot-1{border:2px solid var(--low);background:color-mix(in srgb,var(--low) 14%,var(--panel))}
 .tile.hot-2{border:2px solid var(--mid);background:color-mix(in srgb,var(--mid) 10%,var(--panel))}
 .tile.hot-3{border:2px solid var(--high);background:color-mix(in srgb,var(--high) 10%,var(--panel))}
+.h-sub small{display:block;font-weight:500;font-size:.8rem;color:var(--muted);margin-top:2px}
