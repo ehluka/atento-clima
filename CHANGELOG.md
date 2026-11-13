@@ -2,6 +2,11 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.8 — 13/11/2026
+- Niveles de granizo bien diferenciados: bajo en amarillo, moderado en naranja, alto en rojo (fichas, etiquetas y gráfico por hora), en modo claro y oscuro.
+- Etiquetas amarillas y naranjas con texto oscuro para que se lean bien.
+- "Por hora" también marca las horas con riesgo bajo (amarillo).
+
 ## v1.7 — 13/11/2026
 - Modo claro más legible: fondo más marcado, fichas con sombra y borde, colores de nivel más oscuros (contraste 4,5 o más).
 - Cabecera con degradé más oscuro para que el texto blanco se lea bien.

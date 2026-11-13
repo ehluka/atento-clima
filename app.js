@@ -277,7 +277,7 @@ function hourChart(hours) {
   const pts = hours.map((h, i) => `${x(i)},${y(h.temp).toFixed(1)}`).join(' ');
   let s = `<svg class="chart" width="${n * W}" height="196" viewBox="0 0 ${n * W} 196" role="img" aria-label="Pronóstico por hora">`;
   hours.forEach((h, i) => {
-    if (h.hail >= 2) s += `<rect x="${i * W + 3}" y="1" width="${W - 6}" height="194" rx="10" fill="${COLOR[h.hail]}" fill-opacity=".08" stroke="${COLOR[h.hail]}" stroke-width="2"/>`;
+    if (h.hail >= 1) s += `<rect x="${i * W + 3}" y="1" width="${W - 6}" height="194" rx="10" fill="${COLOR[h.hail]}" fill-opacity=".08" stroke="${COLOR[h.hail]}" stroke-width="2"/>`;
     const bar = Math.round((h.pp ?? 0) / 100 * 30);
     s += `<text x="${x(i)}" y="19" class="c-muted">${i === 0 ? 'Ahora' : fmtH(h.t).slice(0, 2) + ' h'}</text>
        <svg x="${x(i) - 17}" y="25" width="34" height="34" viewBox="0 0 64 64">${wxIcon(h.wc, h.day, 64).replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>
@@ -352,7 +352,7 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
 
   // Por hora
   html += `<section class="card"><h3>Por hora</h3><div class="scroll">${hourChart(a.hours)}</div>
-    <p class="muted small">Barras azules: probabilidad de lluvia. Recuadro naranja o rojo: horas con riesgo de granizo.</p></section>`;
+    <p class="muted small">Barras azules: probabilidad de lluvia. Recuadro de color: horas con riesgo de granizo (amarillo bajo, naranja moderado, rojo alto).</p></section>`;
 
   // Próximos días
   const D = f.daily, lo = Math.min(...D.temperature_2m_min), hi = Math.max(...D.temperature_2m_max), rng = (hi - lo) || 1;
