@@ -2,6 +2,10 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.10 — 13/11/2026
+- "Novedades" se abre en una ventana dentro de la app (antes llevaba a este archivo en el repo); texto pensado para el usuario.
+- Pie sin links: fuentes como texto (Open-Meteo · SMN · USGS) y sin la frase de las alertas (el aviso ya está en la ficha de riesgo).
+
 ## v1.9 — 13/11/2026
 - La tarjeta de alertas se titula "Alertas oficiales" con el subtítulo "Servicio Meteorológico Nacional (SMN)".
 

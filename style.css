@@ -123,3 +123,10 @@ html:not(.is-dark) .card svg path[d^="M18 44"]{stroke:#64748b;stroke-width:1.4}
 .tile.hot-2{border:2px solid var(--mid);background:color-mix(in srgb,var(--mid) 10%,var(--panel))}
 .tile.hot-3{border:2px solid var(--high);background:color-mix(in srgb,var(--high) 10%,var(--panel))}
 .h-sub small{display:block;font-weight:500;font-size:.8rem;color:var(--muted);margin-top:2px}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer}
+.news{max-height:80vh;overflow:auto}
+.news h2{margin:0}
+.news-item{padding:10px 0;border-top:1px solid var(--line)}
+.news-item:first-of-type{border-top:0}
+.news-item ul{margin:6px 0 0;padding-left:20px}
+.news-item li{margin:3px 0;font-size:.92rem}

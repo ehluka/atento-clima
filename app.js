@@ -459,6 +459,30 @@ $('#theme').onclick = () => {
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme(false));
 applyTheme(false);
 
+/* ---------- Novedades (historial de versiones para el usuario) ---------- */
+const NEWS = [
+  ['1.10', '13/11/2026', ['Las novedades de cada versión se ven dentro de la app.']],
+  ['1.9', '13/11/2026', ['La tarjeta de alertas indica que las emite el Servicio Meteorológico Nacional (SMN).']],
+  ['1.8', '13/11/2026', ['Niveles de granizo más fáciles de distinguir: bajo en amarillo, moderado en naranja y alto en rojo.',
+    'El gráfico por hora también marca las horas con riesgo bajo.']],
+  ['1.7', '13/11/2026', ['Modo claro más legible: mejor contraste en fichas, textos y colores.',
+    'La ficha de granizo y las horas con riesgo se destacan en naranja o rojo.']],
+  ['1.6', '13/11/2026', ['La pestaña de tu ubicación muestra el nombre del lugar.',
+    'La cabecera indica la localidad de cada lugar guardado.']],
+  ['1.5', '13/11/2026', ['Botón para elegir tema automático, claro u oscuro.']],
+  ['1.4', '13/11/2026', ['Aviso para instalar la app en el celular.']],
+  ['1.3', '13/11/2026', ['El buscador de lugares muestra solo localidades de Argentina.']],
+  ['1.2', '13/11/2026', ['Avisos a muy corto plazo del SMN: tormentas fuertes en curso en tu zona.',
+    'Alertas actualizadas con más frecuencia.', 'Nuevo diseño con íconos animados, gráfico por hora y pronóstico a 7 días.']],
+  ['1.0', '13/11/2026', ['Primera versión: riesgo de granizo, tormenta y viento, alertas oficiales del SMN, pronóstico y sismos cercanos.']]
+];
+$('#newsBtn').onclick = () => {
+  $('#newsList').innerHTML = NEWS.map(([v, d, items]) => `<section class="news-item"><div class="row"><b>Versión ${v}</b><span class="muted small">${d}</span></div>
+    <ul>${items.map(t => `<li>${esc(t)}</li>`).join('')}</ul></section>`).join('');
+  $('#newsDlg').showModal();
+};
+$('#newsClose').onclick = () => $('#newsDlg').close();
+
 /* ---------- Instalar como app ---------- */
 const LS_INSTALL = 'ac.installHidden';
 let installEvt = null;
