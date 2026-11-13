@@ -97,3 +97,7 @@ details summary{cursor:pointer}
 .d-bar{position:relative;height:6px;border-radius:3px;background:var(--chip)}
 .d-bar i{position:absolute;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#38bdf8,#fbbf24,#f97316)}
 .badge{white-space:nowrap}
+
+.install{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 16px 10px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--accent) 14%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);font-size:.92rem}
+.install[hidden]{display:none}
+.install .x{width:32px;height:32px;font-size:.9rem;flex:none}

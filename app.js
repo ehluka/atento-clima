@@ -411,6 +411,31 @@ async function load() {
 $('#refresh').onclick = () => { smnCache = null; load(); };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
 
+/* ---------- Instalar como app ---------- */
+const LS_INSTALL = 'ac.installHidden';
+let installEvt = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const SHARE_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 11v9h14v-9"/></svg>';
+function renderInstall() {
+  const box = $('#install');
+  if (isStandalone() || ls.get(LS_INSTALL, false) || (!installEvt && !isIOS())) { box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = installEvt
+    ? `<span>📲 Instalá Atento Clima en tu celular</span><span class="row"><button class="btn small" id="doInstall">Instalar</button><button class="icon-btn x" id="hideInstall" aria-label="Cerrar">✕</button></span>`
+    : `<span>📲 Para instalarla: en Safari tocá ${SHARE_ICON} <b>Compartir</b> y después <b>Agregar a inicio</b>.</span><button class="icon-btn x" id="hideInstall" aria-label="Cerrar">✕</button>`;
+  $('#hideInstall').onclick = () => { ls.set(LS_INSTALL, true); box.hidden = true; };
+  const b = $('#doInstall');
+  if (b) b.onclick = async () => {
+    installEvt.prompt();
+    try { await installEvt.userChoice; } catch { }
+    installEvt = null; renderInstall();
+  };
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; renderInstall(); });
+window.addEventListener('appinstalled', () => { installEvt = null; renderInstall(); });
+renderInstall();
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => { });
 
 renderChips();
