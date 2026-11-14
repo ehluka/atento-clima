@@ -2,6 +2,10 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.13 — 14/11/2026
+- Según la guía del SMN (Preguntas frecuentes del SAT): cada alerta muestra qué hacer según el color (amarillo "Informate", naranja "Preparate", rojo "Seguí las instrucciones oficiales"); en temperaturas extremas, el efecto en la salud.
+- Advertencias (niebla, ceniza, polvo, humo): sin color, en violeta, y no suben el nivel de riesgo (antes salían como amarillo).
+
 ## v1.12 — 14/11/2026
 - Alertas oficiales ordenadas: primero la vigente ("Vigente ahora"), después las próximas por fecha.
 - Las fichas de riesgo (granizo, tormenta, viento) suben al nivel de las alertas del SMN de las próximas 24 h si son más altas que el pronóstico (amarillo = bajo, naranja = moderado, rojo = alto); granizo solo si la alerta lo menciona. La ficha indica "SMN · ahora" o la hora.

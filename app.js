@@ -4,6 +4,11 @@
 const LS_PLACES = 'ac.places', LS_SEL = 'ac.sel', LS_CACHE = 'ac.cache.', LS_GEO = 'ac.geoname';
 const LVL = ['Sin riesgo', 'Bajo', 'Moderado', 'Alto'];
 const SMN_LVL = { 1: 'Amarillo', 2: 'Naranja', 3: 'Rojo' };
+// Qué hacer según el color (guía del SMN). Las de temperatura extrema hablan de efectos en la salud.
+const SMN_DO = { 1: 'Informate', 2: 'Preparate', 3: 'Seguí las instrucciones oficiales' };
+const SMN_HEALTH = { 1: 'Efecto leve a moderado en la salud', 2: 'Efecto moderado a alto en la salud', 3: 'Efecto alto a extremo en la salud' };
+// Advertencias (niebla, ceniza, polvo, humo): no tienen colores, el SMN las muestra en violeta.
+const isAdv = x => /niebla|ceniza|polvo|humo|visibilidad|advertencia/.test(norm(x.event + ' ' + x.headline));
 
 const WMO = {
   0: 'Despejado', 1: 'Mayormente despejado', 2: 'Parcialmente nublado', 3: 'Nublado',
@@ -402,14 +407,14 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
   const rk = { hail: { ...a.hail }, storm: { ...a.storm }, wind: { ...a.wind } };
   for (const x of smn) {
     const on = onT(x), lv = x.level || 1;
-    if (on > now + 24 * 3600e3) continue;
+    if (on > now + 24 * 3600e3 || isAdv(x)) continue;
     const t = norm(x.event + ' ' + x.headline), keys = [];
     if (/tormenta/.test(t)) keys.push('storm');
     if (/viento|zonda/.test(t)) keys.push('wind');
     if (/granizo/.test(t + ' ' + norm(x.description))) keys.push('hail');
     for (const k of keys) if (lv > rk[k].lvl) rk[k] = { lvl: lv, at: new Date(Math.max(on, now)), smn: on <= now ? 'ahora' : 'luego' };
   }
-  const smnMax = smn.reduce((m, x) => Math.max(m, x.level || 1), 0);
+  const smnMax = smn.reduce((m, x) => isAdv(x) ? m : Math.max(m, x.level || 1), 0);
   const top = Math.max(a.hail.lvl, a.storm.lvl, a.wind.lvl, smnMax, acp.length ? 3 : 0, rayLvl);
   levels[place.id] = top; renderChips();
 
@@ -456,8 +461,9 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
   else {
     if (!smn.length) html += `<p class="muted">Sin alertas vigentes para este lugar.</p>`;
     else html += `<ul class="list">${smn.map(x => `<li>
-      <div class="row"><b>${esc(x.event)}</b><span class="badge b-${x.level || 1}">${SMN_LVL[x.level] || esc(x.severity)}</span></div>
-      <div class="muted">${onT(x) <= now ? '<b class="t-' + (x.level || 1) + '">Vigente ahora</b>' : 'Desde ' + fmtWhen(new Date(x.onset))}${x.expires ? ' · hasta ' + fmtWhen(new Date(x.expires)) : ''}</div>
+      <div class="row"><b>${esc(x.event)}</b>${isAdv(x) ? '<span class="badge b-adv">Advertencia</span>' : `<span class="badge b-${x.level || 1}">${SMN_LVL[x.level] || esc(x.severity)}</span>`}</div>
+      ${isAdv(x) ? '' : `<div class="small t-${x.level || 1}"><b>${(/temperatura|calor|frio/.test(norm(x.event)) ? SMN_HEALTH : SMN_DO)[x.level || 1]}</b></div>`}
+      <div class="muted">${onT(x) <= now ? '<b class="' + (isAdv(x) ? 't-adv' : 't-' + (x.level || 1)) + '">Vigente ahora</b>' : 'Desde ' + fmtWhen(new Date(x.onset))}${x.expires ? ' · hasta ' + fmtWhen(new Date(x.expires)) : ''}</div>
       ${x.description ? `<details><summary class="muted">Detalle</summary><p>${esc(x.description)}</p></details>` : ''}
     </li>`).join('')}</ul>`;
     html += `<p class="muted small">${acp.length ? '' : acpStale ? 'Avisos a muy corto plazo: no disponibles ahora. ' : 'Sin avisos a muy corto plazo en tu zona. '}Actualizado ${fmtAgo(Date.parse(smnData.updated))} ·
@@ -576,6 +582,7 @@ applyTheme(false);
 
 /* ---------- Novedades (historial de versiones para el usuario) ---------- */
 const NEWS = [
+  ['1.13', '14/11/2026', ['Cada alerta dice qué hacer según su color, como lo indica el SMN: Informate, Preparate o Seguí las instrucciones oficiales.', 'Las advertencias (niebla, ceniza, polvo, humo) se muestran en violeta.']],
   ['1.12', '14/11/2026', ['Las alertas del SMN muestran primero la que está vigente y después las próximas.', 'Las fichas de riesgo también tienen en cuenta las alertas oficiales del SMN.']],
   ['1.11', '13/11/2026', ['Nuevo: "Rayos cerca". Muestra si el satélite detecta rayos a tu alrededor y estima el riesgo de granizo en ese momento. Tocá la fila para ver el detalle.']],
   ['1.10', '13/11/2026', ['Las novedades de cada versión se ven dentro de la app.']],
