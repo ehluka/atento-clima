@@ -120,7 +120,7 @@
    "missing": [],
    "files": 4200,
    "errors": 0,
-   "seconds": 28
+   "seconds": 9
   },
   "0": {
    "shard": 0,
@@ -128,7 +128,7 @@
    "missing": [],
    "files": 4199,
    "errors": 0,
-   "seconds": 15
+   "seconds": 43
   }
  }
 }
