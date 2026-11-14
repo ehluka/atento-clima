@@ -94,7 +94,7 @@ if PILOTO:
     pos = [p for p in pos if p["reg"] == "cuyo"][:4] + [p for p in pos if p["reg"] == "resto"][:4]
     negs = negc[:4] + nego[:4]
 else:
-    negs = negc + nego[:600]
+    negs = negc + nego[:400]
 
 targets = []
 def add(tid, kind, reg, lat, lon, a, b, step, meta):
@@ -140,7 +140,7 @@ def names_in(text):
 HAIL = re.compile(r"\bgraniz")
 RAIN = re.compile(r"\blluvi|precipitaci|\bllovi")
 DOW = re.compile(r"\b(lunes|martes|miercoles|jueves|viernes|sabado|domingo)\s+(\d{1,2})\b")
-HRS = re.compile(r"\b(?:entre las|desde las?|a partir de las)\s+(\d{1,2})(?:[.:](\d{2}))?\s*(?:h\w*)?\s+(?:y las|hasta las?|hasta pasadas? las)\s+(\d{1,2})(?:[.:](\d{2}))?")
+HRS = re.compile(r"\b(?:entre las|desde las?|a partir de las)\s+(\d{1,2})(?:\s(\d{2}))?\s*(?:h\w*)?\s+(?:y las|hasta las?|hasta pasadas? las)\s+(\d{1,2})(?:\s(\d{2}))?")
 
 def parse_post(p):
     raw = p["content"]["rendered"]
