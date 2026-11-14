@@ -2,6 +2,9 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.13.1 — 14/11/2026
+- Contador de visitas privado con GoatCounter (sin cookies ni datos personales; no cambia nada en pantalla).
+
 ## v1.13 — 14/11/2026
 - Según la guía del SMN (Preguntas frecuentes del SAT): cada alerta muestra qué hacer según el color (amarillo "Informate", naranja "Preparate", rojo "Seguí las instrucciones oficiales"); en temperaturas extremas, el efecto en la salud.
 - Advertencias (niebla, ceniza, polvo, humo): sin color, en violeta, y no suben el nivel de riesgo (antes salían como amarillo).
