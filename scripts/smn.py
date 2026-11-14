@@ -11,14 +11,18 @@ FEEDS = [
 OUT = sys.argv[1] if len(sys.argv) > 1 else "data/alerts.json"
 UA = {"User-Agent": "AtentoClima/1.0 (+https://github.com/ehluka/atento-clima)"}
 CACHE = os.environ.get("CAP_CACHE", ".capcache")
+# Tope de tiempo: si el SMN frena las descargas (error 429) o no alcanza el tiempo, se publica lo que haya
+# y los avisos que faltan se bajan en las corridas siguientes (los ya bajados quedan en la caché).
+DEADLINE = time.time() + float(os.environ.get("SMN_BUDGET", "180"))
+state = {"stop": None, "faltan": 0}
 
-def get(url, tries=4):
+def get(url, tries=3):
     for n in range(tries):
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=12) as r:
                 return r.read()
         except urllib.error.HTTPError as e:
-            if e.code != 429 or n == tries - 1:
+            if e.code != 429 or n == tries - 1 or time.time() + 5 * 2 ** n > DEADLINE:
                 raise
             time.sleep(5 * 2 ** n)
 
@@ -36,8 +40,19 @@ def get_cached(url):
     if os.path.exists(p):
         with open(p, "rb") as f:
             return f.read()
+    if not state["stop"] and time.time() > DEADLINE:
+        state["stop"] = "sin tiempo"
+    if state["stop"]:
+        state["faltan"] += 1
+        raise RuntimeError(state["stop"])
     time.sleep(0.8)
-    data = get(url)
+    try:
+        data = get(url)
+    except urllib.error.HTTPError as e:
+        if e.code == 429:  # no insistir: se sigue en la próxima corrida
+            state["stop"] = "el SMN limitó las descargas (429)"
+        state["faltan"] += 1
+        raise
     os.makedirs(CACHE, exist_ok=True)
     with open(p, "wb") as f:
         f.write(data)
@@ -133,7 +148,9 @@ def fetch_feed(kind, feed, used, done):
             try:
                 got = parse_alert(strip(ET.fromstring(get_cached(l))), l)
             except Exception as e:
-                print(f"[{kind}] skip", l, e, file=sys.stderr); continue
+                if not state["stop"] or state["faltan"] <= 1:
+                    print(f"[{kind}] skip", l, e, file=sys.stderr)
+                continue
             for a in got:
                 a["kind"] = "acp" if "avisocortoplazo" in l else "alerta"
             alerts += got
@@ -161,7 +178,10 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"[{kind}] ERROR {e}", file=sys.stderr)
             data["error" if kind == "alerta" else "acp_error"] = str(e)[:300]
-    if os.path.isdir(CACHE) and "error" not in data and "acp_error" not in data:
+    if state["faltan"]:
+        data["faltan"] = state["faltan"]
+        print(f"Faltan {state['faltan']} avisos ({state['stop']}): se bajan en la próxima corrida", file=sys.stderr)
+    if os.path.isdir(CACHE) and "error" not in data and "acp_error" not in data and not state["faltan"]:
         for fn in os.listdir(CACHE):
             if fn not in used:
                 os.remove(os.path.join(CACHE, fn))
