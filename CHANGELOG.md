@@ -8,6 +8,8 @@ App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/a
 - Si hay rayos cerca, el titular de la cabecera lo avisa.
 - Los rayos se actualizan en la publicación automática cada 5 min (scripts/rayos.py, con caché); si los datos tienen más de 20 min, la app avisa que no puede confirmar.
 - Pie: fuentes con NOAA (GOES-19).
+- Publicación más robusta: si el SMN frena las descargas, se publica lo que haya y el resto se baja en las corridas siguientes (antes podía trabar toda la publicación).
+- Si el servidor responde con un error pasajero, la app instalada usa la copia guardada (antes podía verse sin estilos).
 
 ## v1.10 — 13/11/2026
 - "Novedades" se abre en una ventana dentro de la app (antes llevaba a este archivo en el repo); texto pensado para el usuario.
