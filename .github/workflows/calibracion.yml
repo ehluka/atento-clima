@@ -1,0 +1,61 @@
+name: Calibración granizo-rayos
+on:
+  push:
+    branches: [prueba-rayos]
+    paths: ["calib/**", ".github/workflows/calibracion.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: calibracion
+  cancel-in-progress: true
+jobs:
+  preparar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      shards: ${{ steps.p.outputs.shards }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: python3 calib/prepare.py work
+      - uses: actions/upload-artifact@v4
+        with: {name: tareas, path: work}
+  extraer:
+    needs: preparar
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      max-parallel: 15
+      matrix:
+        shard: ${{ fromJSON(needs.preparar.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -q numpy h5py
+      - uses: actions/download-artifact@v4
+        with: {name: tareas, path: work}
+      - run: python3 calib/extract.py work ${{ matrix.shard }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rayos-${{ matrix.shard }}
+          path: |
+            work/out_${{ matrix.shard }}.csv.gz
+            work/stats_${{ matrix.shard }}.json
+  analizar:
+    needs: [preparar, extraer]
+    if: ${{ always() && needs.preparar.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -q numpy
+      - uses: actions/download-artifact@v4
+        with: {path: work, merge-multiple: true}
+      - run: python3 calib/analyze.py work resultados
+      - name: Guardar resultados en la rama
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resultados
+          git commit -m "Resultados calibración ($(cat calib/MODO)) [skip ci]" || echo "sin cambios"
+          git push
