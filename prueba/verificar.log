@@ -1,0 +1,6 @@
+index: Atento Clima v1.11 | NOAA en pie: True
+sw: True
+rayos.json: 112 KB transferidos (Content-Encoding=gzip), 513 KB, datos de hace 3 min, 28064 puntos
+alerts.json: 118 alertas, faltan 42 | actualizado 2026-11-14T02:55:57+00:00
+[tormenta] -29.1,-61.5 | titular: 'Tormenta fuerte en curso en tu zona' | fila: Rayos cerca Granizo: alto | A menos de 5 km, hace 3 min | Salto brusco de rayos hace 5 min | › | errores: ['Failed to load resource: the server responded with a status of 503 ()']
+[mendoza] -32.89,-68.83 | titular: 'Riesgo bajo de tormenta hoy 00:00 h' | fila: Sin rayos cerca | Ninguno a menos de 50 km · hace 3 min | errores: []
