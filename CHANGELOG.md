@@ -60,6 +60,7 @@ App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/a
 - Tema automático claro/oscuro.
 
 ## Ideas pendientes
+- **Próximo:** que la actualización corra de verdad cada 5 min (GitHub corre la tarea programada cada ~45 min y los rayos quedan viejos). Propuesta: disparo externo cada 5 min (cron-job.org) con una clave de GitHub limitada a este repo.
 - Calidad del aire / índice UV.
 - Incendios cercanos (NASA FIRMS, requiere clave gratuita).
 - Sismos del INPRES (a verificar si hay datos accesibles).
