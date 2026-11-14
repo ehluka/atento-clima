@@ -1,0 +1,22 @@
+name: Verificar sitio publicado
+on:
+  push:
+    branches: [prueba-rayos]
+    paths: ['prueba/verificar.py', '.github/workflows/verificar-sitio.yml']
+permissions:
+  contents: write
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -q playwright && python3 -m playwright install --with-deps chromium > /dev/null
+      - run: python3 prueba/verificar.py 2>&1 | tee prueba/verificar.log
+      - name: Guardar capturas en la rama
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add prueba/*.png prueba/verificar.log
+          git commit -m "Verificación del sitio publicado [skip ci]" || true
+          git push || true
