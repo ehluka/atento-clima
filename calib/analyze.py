@@ -123,6 +123,8 @@ if dh and dr:
         P(f"  ≥{thr:>3}: granizo {np.mean([r[f'max10_{R}'] >= thr for r in dh]):.0%} | lluvia sin granizo {np.mean([r[f'max10_{R}'] >= thr for r in dr]):.0%}")
     q = lambda v: np.percentile(v, [25, 50, 75]).round(0).tolist()
     P(f"\nCuartiles máx. 10 min (20 km): granizo {q([r['max10_20'] for r in dh])} | lluvia {q([r['max10_20'] for r in dr])}")
+import shutil
+if os.path.exists(f"{WORK}/dcc_raw.json"): shutil.copy(f"{WORK}/dcc_raw.json", f"{OUT}/dcc_raw.json")
 open(f"{OUT}/resumen.md", "w").write("\n".join(L) + "\n")
 with open(f"{OUT}/casos.csv", "w", newline="") as f:
     keys = sorted({k for r in rows for k in r}); w = csv.DictWriter(f, keys); w.writeheader(); w.writerows(rows)

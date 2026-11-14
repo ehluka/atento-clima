@@ -94,7 +94,7 @@ if PILOTO:
     pos = [p for p in pos if p["reg"] == "cuyo"][:4] + [p for p in pos if p["reg"] == "resto"][:4]
     negs = negc[:4] + nego[:4]
 else:
-    negs = negc[:400] + nego[:300]
+    negs = negc + nego[:600]
 
 targets = []
 def add(tid, kind, reg, lat, lon, a, b, step, meta):
@@ -206,7 +206,10 @@ for page in range(1, 40):
     if len(data) < 100: break
 ops = [p for p in posts if re.search(r"radar", p["content"]["rendered"], re.I)]
 print("Partes de prensa:", len(posts), "| con datos de radar:", len(ops))
-if PILOTO: ops = ops[:3]
+if PILOTO:
+    json.dump([{"date": p["date"], "link": p["link"], "title": p["title"]["rendered"], "content": p["content"]["rendered"]} for p in ops],
+              open(f"{OUT}/dcc_raw.json", "w"), ensure_ascii=False)
+    ops = ops[:3]
 dcc_meta = []
 nh = nr = nexact = 0
 for i, p in enumerate(ops):
