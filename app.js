@@ -362,7 +362,7 @@ function riskTile(name, key, r) {
   const pips = [1, 2, 3].map(i => `<i style="background:${i <= r.lvl ? COLOR[r.lvl] : 'var(--pip)'}"></i>`).join('');
   return `<div class="tile ${key === 'hail' && r.lvl ? 'hot-' + r.lvl : ''}">${RISK_ICON[key]}<div class="muted">${name}</div>
     <b class="t-${r.lvl}">${LVL[r.lvl]}</b><div class="pips">${pips}</div>
-    <div class="muted small">${r.lvl ? fmtWhen(r.at) : '&nbsp;'}</div></div>`;
+    <div class="muted small">${!r.lvl ? '&nbsp;' : r.smn ? 'SMN · ' + (r.smn === 'ahora' ? 'ahora' : fmtH(r.at) + ' h') : fmtWhen(r.at)}</div></div>`;
 }
 
 function hourChart(hours) {
@@ -396,7 +396,19 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
   const hits = smnErr ? [] : smnFor(smnData, coords.lat, coords.lon, place.prov);
   const acpStale = !smnErr && (smnData.acp_error || Date.now() - Date.parse(smnData.updated) > 30 * 60e3);
   const acp = acpStale ? [] : hits.filter(x => x.kind === 'acp');
-  const smn = hits.filter(x => x.kind !== 'acp');
+  const now = Date.now(), onT = x => x.onset ? Date.parse(x.onset) : 0;
+  const smn = hits.filter(x => x.kind !== 'acp').sort((p, q) => (onT(p) > now) - (onT(q) > now) || onT(p) - onT(q) || (q.level || 1) - (p.level || 1));
+  // Las fichas de riesgo también toman las alertas oficiales de las próximas 24 h (si son más altas que el pronóstico)
+  const rk = { hail: { ...a.hail }, storm: { ...a.storm }, wind: { ...a.wind } };
+  for (const x of smn) {
+    const on = onT(x), lv = x.level || 1;
+    if (on > now + 24 * 3600e3) continue;
+    const t = norm(x.event + ' ' + x.headline), keys = [];
+    if (/tormenta/.test(t)) keys.push('storm');
+    if (/viento|zonda/.test(t)) keys.push('wind');
+    if (/granizo/.test(t + ' ' + norm(x.description))) keys.push('hail');
+    for (const k of keys) if (lv > rk[k].lvl) rk[k] = { lvl: lv, at: new Date(Math.max(on, now)), smn: on <= now ? 'ahora' : 'luego' };
+  }
   const smnMax = smn.reduce((m, x) => Math.max(m, x.level || 1), 0);
   const top = Math.max(a.hail.lvl, a.storm.lvl, a.wind.lvl, smnMax, acp.length ? 3 : 0, rayLvl);
   levels[place.id] = top; renderChips();
@@ -435,8 +447,8 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
 
   // Riesgo estimado
   html += `<section class="card"><h3>Riesgo estimado · próximas 24 h</h3>
-    <div class="tiles">${riskTile('Granizo', 'hail', a.hail)}${riskTile('Tormenta', 'storm', a.storm)}${riskTile('Viento', 'wind', a.wind)}</div>
-    <p class="muted small">Estimación propia según el pronóstico. No reemplaza los avisos oficiales.</p></section>`;
+    <div class="tiles">${riskTile('Granizo', 'hail', rk.hail)}${riskTile('Tormenta', 'storm', rk.storm)}${riskTile('Viento', 'wind', rk.wind)}</div>
+    <p class="muted small">Estimación propia según el pronóstico y las alertas del SMN. No reemplaza los avisos oficiales.</p></section>`;
 
   // Alertas oficiales
   html += `<section class="card alert lvl-${smnMax}"><h3 class="h-sub">Alertas oficiales<small>Servicio Meteorológico Nacional (SMN)</small></h3>`;
@@ -445,7 +457,7 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
     if (!smn.length) html += `<p class="muted">Sin alertas vigentes para este lugar.</p>`;
     else html += `<ul class="list">${smn.map(x => `<li>
       <div class="row"><b>${esc(x.event)}</b><span class="badge b-${x.level || 1}">${SMN_LVL[x.level] || esc(x.severity)}</span></div>
-      <div class="muted">${x.onset ? 'Desde ' + fmtWhen(new Date(x.onset)) : ''}${x.expires ? ' · hasta ' + fmtWhen(new Date(x.expires)) : ''}</div>
+      <div class="muted">${onT(x) <= now ? '<b class="t-' + (x.level || 1) + '">Vigente ahora</b>' : 'Desde ' + fmtWhen(new Date(x.onset))}${x.expires ? ' · hasta ' + fmtWhen(new Date(x.expires)) : ''}</div>
       ${x.description ? `<details><summary class="muted">Detalle</summary><p>${esc(x.description)}</p></details>` : ''}
     </li>`).join('')}</ul>`;
     html += `<p class="muted small">${acp.length ? '' : acpStale ? 'Avisos a muy corto plazo: no disponibles ahora. ' : 'Sin avisos a muy corto plazo en tu zona. '}Actualizado ${fmtAgo(Date.parse(smnData.updated))} ·
@@ -564,6 +576,7 @@ applyTheme(false);
 
 /* ---------- Novedades (historial de versiones para el usuario) ---------- */
 const NEWS = [
+  ['1.12', '14/11/2026', ['Las alertas del SMN muestran primero la que está vigente y después las próximas.', 'Las fichas de riesgo también tienen en cuenta las alertas oficiales del SMN.']],
   ['1.11', '13/11/2026', ['Nuevo: "Rayos cerca". Muestra si el satélite detecta rayos a tu alrededor y estima el riesgo de granizo en ese momento. Tocá la fila para ver el detalle.']],
   ['1.10', '13/11/2026', ['Las novedades de cada versión se ven dentro de la app.']],
   ['1.9', '13/11/2026', ['La tarjeta de alertas indica que las emite el Servicio Meteorológico Nacional (SMN).']],

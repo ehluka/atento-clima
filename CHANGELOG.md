@@ -2,6 +2,10 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.12 — 14/11/2026
+- Alertas oficiales ordenadas: primero la vigente ("Vigente ahora"), después las próximas por fecha.
+- Las fichas de riesgo (granizo, tormenta, viento) suben al nivel de las alertas del SMN de las próximas 24 h si son más altas que el pronóstico (amarillo = bajo, naranja = moderado, rojo = alto); granizo solo si la alerta lo menciona. La ficha indica "SMN · ahora" o la hora.
+
 ## v1.11 — 13/11/2026
 - Nueva fila "Rayos cerca" (satélite GOES-19 de NOAA, sensor GLM): rayos a menos de 50 km en la última media hora, distancia del más cercano y nivel de granizo según los rayos a menos de 10 km (5 / 20 / 80). Niveles calibrados con 48 granizadas en aeropuertos de Cuyo y 900 tormentas sin granizo (2018-2026).
 - Aviso de "salto brusco de rayos" (suele anticipar el granizo unos 25 min). Al tocar la fila se abre el detalle: mapa, rayos por minuto y cómo se calcula.
