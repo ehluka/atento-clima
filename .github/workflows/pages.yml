@@ -1,4 +1,4 @@
-name: Publicar y actualizar alertas SMN
+name: Publicar y actualizar alertas SMN y rayos
 on:
   push:
     branches: [main]
@@ -29,6 +29,17 @@ jobs:
           restore-keys: smn-
       - name: Descargar alertas SMN
         run: python3 scripts/smn.py data/alerts.json
+      - name: Caché de rayos ya procesados
+        uses: actions/cache@v4
+        with:
+          path: .raycache
+          key: rayos-${{ github.run_id }}
+          restore-keys: rayos-
+      - name: Rayos del satélite GOES-19
+        continue-on-error: true
+        run: |
+          pip install -q numpy h5py
+          python3 scripts/rayos.py data/rayos.json
       - name: Armar sitio
         run: mkdir _site && cp -r index.html style.css app.js sw.js manifest.webmanifest icons data _site/
       - uses: actions/configure-pages@v5

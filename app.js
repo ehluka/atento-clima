@@ -143,6 +143,102 @@ async function getSMN() {
   return d;
 }
 
+/* ---------- Rayos cerca (satélite GOES-19, vía data/rayos.json) ---------- */
+// Formato: { t0: minuto (epoch) de los datos, f: [[lat*100, lon*100, minutos antes de t0, rayos], ...] }
+let rayCache = null;
+async function getRayos() {
+  if (rayCache && Date.now() - rayCache.t < 60e3) return rayCache.d;
+  const d = await getJSON('data/rayos.json?t=' + Date.now());
+  rayCache = { t: Date.now(), d };
+  return d;
+}
+// Solo los rayos a ~60 km del lugar (para guardar en caché sin ocupar de más).
+const raySub = (d, lat, lon) => d && { t0: d.t0, f: (d.f || []).filter(([la, lo]) => Math.abs(la / 100 - lat) < .6 && Math.abs(lo / 100 - lon) < .7) };
+const DIRS = ['norte', 'noreste', 'este', 'sureste', 'sur', 'suroeste', 'oeste', 'noroeste'];
+// Niveles calibrados con granizadas en aeropuertos de Cuyo: rayos a menos de 10 km en los últimos 30 min.
+const RAY_LVL = n => n >= 80 ? 3 : n >= 20 ? 2 : n >= 5 ? 1 : 0;
+function rayosNear(d, lat, lon) {
+  const age = Math.max(0, Math.round(Date.now() / 60e3 - d.t0));
+  const cosl = Math.cos(lat * Math.PI / 180), perMin = new Array(40).fill(0), pts = [];
+  let n10 = 0, a = 0, b = 0, near = null, near5 = null;
+  for (const [la, lo, ago, n] of d.f || []) {
+    if (ago >= 40) continue;
+    const y = (la / 100 - lat) * 111.2, x = (lo / 100 - lon) * 111.2 * cosl, km = Math.hypot(x, y);
+    if (km > 50) continue;
+    if (ago < 30) pts.push({ x, y, km, ago, n });
+    if (km <= 10 && ago < 30) n10 += n;
+    if (km <= 20) { perMin[39 - ago] += n; if (ago < 10) a += n; else if (ago < 20) b += n; }
+    const nr = { km, ago: ago + age, dir: DIRS[Math.round(((Math.atan2(x, y) * 180 / Math.PI + 360) % 360) / 45) % 8] };
+    if (ago < 15 && (!near || km < near.km)) near = nr;
+    if (ago < 5 && (!near5 || km < near5.km)) near5 = nr;
+  }
+  near = near5 || near;
+  const trend = a >= 1.5 * b + 3 ? 'up' : a <= 0.6 * b - 3 ? 'down' : 'flat';
+  const j = lightningJump(perMin);
+  return { age, pts, n10, perMin, near, trend, jump: j == null ? null : j + age, lvl: RAY_LVL(n10) };
+}
+// Salto brusco de rayos (algoritmo 2σ de Schultz et al.): tasa en períodos de 2 min; salto si el aumento
+// supera 2 desvíos de los 10 min previos y la tasa es de 4 rayos/min o más. Devuelve hace cuántos minutos.
+function lightningJump(perMin) {
+  const fr = [];
+  for (let i = 0; i + 1 < perMin.length; i += 2) fr.push((perMin[i] + perMin[i + 1]) / 2);
+  for (let i = fr.length - 1; i >= Math.max(6, fr.length - 8); i--) {
+    const prev = [];
+    for (let j = i - 5; j < i; j++) prev.push((fr[j] - fr[j - 1]) / 2);
+    const m = prev.reduce((s, v) => s + v, 0) / prev.length;
+    const sd = Math.sqrt(prev.reduce((s, v) => s + (v - m) ** 2, 0) / prev.length);
+    const d = (fr[i] - fr[i - 1]) / 2;
+    if (fr[i] >= 4 && d > 0 && d > 2 * sd) return (fr.length - 1 - i) * 2;
+  }
+  return null;
+}
+const distTxt = r => r.km < 5 ? 'a menos de 5 km' : `a unos ${Math.round(r.km / 5) * 5} km al ${r.dir}`;
+const haceMin = m => m <= 1 ? 'recién' : `hace ${m} min`;
+function polar(pts) {
+  const S = 136, C = S / 2, K = 60 / 30;
+  let s = `<svg class="polar" viewBox="0 0 ${S} ${S}" width="${S}" height="${S}" role="img" aria-label="Rayos alrededor de este lugar">
+    <circle cx="${C}" cy="${C}" r="60" class="ring"/><circle cx="${C}" cy="${C}" r="${20 * K}" class="ring"/>
+    <circle cx="${C}" cy="${C}" r="${10 * K}" class="ring ring10"/>
+    <text x="${C}" y="7" class="pl">N</text>`;
+  for (const p of pts.filter(p => p.km <= 30).sort((u, v) => v.ago - u.ago)) {
+    const op = (1 - p.ago / 36).toFixed(2), r = Math.min(4, 1.7 + Math.log2(p.n + 1) * 0.7);
+    s += `<circle cx="${(C + p.x * K).toFixed(1)}" cy="${(C - p.y * K).toFixed(1)}" r="${r.toFixed(1)}" class="flash" style="opacity:${op}"/>`;
+  }
+  return s + `<circle cx="${C}" cy="${C}" r="4.5" class="me"/>${[10, 20, 30].map(k => `<text x="${C}" y="${C + k * K + 3}" class="pl halo">${k === 30 ? '30 km' : k}</text>`).join('')}</svg>`;
+}
+function spark(perMin, age) {
+  const v = perMin.slice(10), mx = Math.max(4, ...v), W = 6, H = 40;
+  return `<svg class="spark" viewBox="0 0 ${v.length * W} ${H}" preserveAspectRatio="none" aria-hidden="true">${v.map((x, i) => {
+    const h = x ? Math.max(2, x / mx * H) : 0;
+    return `<rect x="${i * W + 1}" y="${(H - h).toFixed(1)}" width="${W - 2}" height="${h.toFixed(1)}" rx="1.5" class="sb"/>`;
+  }).join('')}</svg><div class="row muted small"><span>hace ${30 + age} min</span><span>${age <= 1 ? 'ahora' : `hace ${age} min`}</span></div>`;
+}
+const BOLT = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M13.5 2 4.5 13.5h6L9.5 22l9-11.5h-6z" fill="currentColor"/></svg>';
+const cap = t => t[0].toUpperCase() + t.slice(1);
+// Versión simple: una fila chiquita; si hay rayos, al tocarla se abre el detalle.
+function rayosCard(r, err) {
+  const row = (ic, title, sub, extra = '', tail = '') => `<div class="rm-row"><span class="ray-ic ${ic}">${BOLT}</span><div class="rm-txt"><div class="rm-t">${title}</div><div class="muted small">${sub}</div>${extra}</div>${tail}</div>`;
+  const mini = (title, sub) => `<section class="card ray-mini">${row('off', title, sub)}</section>`;
+  if (err || !r) return mini('Rayos: sin datos', 'No se pudieron leer los datos del satélite');
+  if (r.age > 20) return mini('Rayos: sin datos recientes', `Son de hace ${r.age} min: no se puede confirmar si hay rayos cerca`);
+  if (!r.pts.length) return mini('Sin rayos cerca', `Ninguno a menos de 50 km · ${r.age <= 1 ? 'recién' : `hace ${r.age} min`}`);
+  const L = r.lvl;
+  const title = `Rayos cerca${L ? ` <span class="badge b-${L}">Granizo: ${LVL[L].toLowerCase()}</span>` : ''}`;
+  const sub = r.near ? `${cap(distTxt(r.near))}, ${haceMin(r.near.ago)}` : 'Hubo rayos en la última media hora';
+  const lj = r.jump != null ? `<div class="rm-lj">Salto brusco de rayos ${haceMin(r.jump)}</div>` : '';
+  const near = r.near ? `Más cercano: <b>${distTxt(r.near)}</b>, ${haceMin(r.near.ago)}` : 'Ningún rayo en los últimos 15 min';
+  const tr = { up: '<span class="tr up">↑ En aumento</span>', down: '<span class="tr down">↓ Bajando</span>', flat: '<span class="tr">→ Estable</span>' }[r.trend];
+  return `<details class="card ray-mini${L ? ' lvlb-' + L : ''}"><summary>${row('on', title, sub, lj, '<span class="chev" aria-hidden="true">›</span>')}</summary>
+    <div class="ray-more"><div class="ray-grid">${polar(r.pts)}<div class="ray-info">
+      <div class="ray-n"><b>${Math.round(r.n10)}</b> ${Math.round(r.n10) === 1 ? 'rayo' : 'rayos'}</div><div class="muted small">a menos de 10 km en la última media hora</div>
+      <div class="ray-near">${near}</div>${tr}</div></div>
+    ${r.jump != null ? `<div class="lj"><b>Salto brusco de rayos</b> ${haceMin(r.jump)}: suele anticipar el granizo unos 25 minutos.</div>` : ''}
+    <div class="spark-wrap"><span class="muted small">Rayos por minuto a menos de 20 km</span>${spark(r.perMin, r.age)}</div>
+    <details><summary class="muted small">Cómo se calcula</summary><p class="small">Contamos los rayos que detecta el satélite GOES-19 (NOAA) a menos de 10 km de este lugar en la última media hora. Los niveles se calibraron con 48 granizadas registradas en aeropuertos de Cuyo y 900 tormentas sin granizo (2018-2026): con 5 rayos o más se detectó el 96% de las granizadas, y con 80 o más el granizo fue unas 6 veces más probable que en una tormenta común. El satélite ubica cada rayo con un margen de algunos kilómetros, y es una estimación: el granizo puede no caer justo en tu punto.</p></details>
+    <p class="muted small">Satélite GOES-19 · ${r.age <= 1 ? 'actualizado recién' : `actualizado hace ${r.age} min`}</p></div>
+  </details>`;
+}
+
 /* ---------- Riesgos estimados ---------- */
 // Granizo: inestabilidad (CAPE / índice de levantamiento) + altura de la isoterma 0 °C + código de tormenta con granizo.
 function hailLevel(x) {
@@ -290,8 +386,11 @@ function hourChart(hours) {
   return s + '</svg>';
 }
 
-function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
+function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayData, rayErr) {
   const a = analyze(f), c = f.current, day = c.is_day ?? 1;
+  let ray = null;
+  try { if (!rayErr && rayData) ray = rayosNear(rayData, coords.lat, coords.lon); } catch { ray = null; }
+  const rayLvl = ray && ray.age <= 20 ? ray.lvl : 0;
   // Datos SMN con error o con más de 2 h sin actualizar: no afirmar "sin alertas".
   if (!smnErr && (smnData?.error || !smnData?.updated || Date.now() - Date.parse(smnData.updated) > 2 * 3600e3)) smnErr = true;
   const hits = smnErr ? [] : smnFor(smnData, coords.lat, coords.lon, place.prov);
@@ -299,10 +398,11 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
   const acp = acpStale ? [] : hits.filter(x => x.kind === 'acp');
   const smn = hits.filter(x => x.kind !== 'acp');
   const smnMax = smn.reduce((m, x) => Math.max(m, x.level || 1), 0);
-  const top = Math.max(a.hail.lvl, a.storm.lvl, a.wind.lvl, smnMax, acp.length ? 3 : 0);
+  const top = Math.max(a.hail.lvl, a.storm.lvl, a.wind.lvl, smnMax, acp.length ? 3 : 0, rayLvl);
   levels[place.id] = top; renderChips();
 
   const head = acp.length ? 'Tormenta fuerte en curso en tu zona'
+    : rayLvl ? `${ray.near ? 'Rayos ' + distTxt(ray.near) : 'Rayos cerca'}: riesgo ${LVL[rayLvl].toLowerCase()} de granizo`
     : a.hail.lvl ? `Riesgo ${LVL[a.hail.lvl].toLowerCase()} de granizo ${fmtWhen(a.hail.at)}`
     : a.storm.lvl ? `Riesgo ${LVL[a.storm.lvl].toLowerCase()} de tormenta ${fmtWhen(a.storm.at)}`
     : a.wind.lvl ? `Ráfagas fuertes ${fmtWhen(a.wind.at)}`
@@ -329,6 +429,9 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache) {
     ${x.description ? `<p>${esc(x.description)}</p>` : ''}
     <p class="muted">${x.expires ? 'Válido hasta ' + fmtWhen(new Date(x.expires)) + '. ' : ''}${x.area ? 'Zona: ' + esc(x.area.slice(0, 160)) + '.' : ''}</p>
     ${x.instruction ? `<details><summary class="muted">Qué hacer</summary><p>${esc(x.instruction)}</p></details>` : ''}</section>`);
+
+  // Rayos cerca (ahora)
+  html += rayosCard(ray, rayErr || !ray);
 
   // Riesgo estimado
   html += `<section class="card"><h3>Riesgo estimado · próximas 24 h</h3>
@@ -409,17 +512,17 @@ async function load() {
       } catch { }
     } else coords = { lat: place.lat, lon: place.lon };
 
-    const [f, smn, q] = await Promise.allSettled([
+    const [f, smn, q, ry] = await Promise.allSettled([
       getJSON(forecastURL(coords.lat.toFixed(3), coords.lon.toFixed(3))), getSMN(),
-      getJSON(quakesURL(coords.lat.toFixed(3), coords.lon.toFixed(3)))]);
+      getJSON(quakesURL(coords.lat.toFixed(3), coords.lon.toFixed(3))), getRayos()]);
     if (seq !== loadSeq) return;
 
     if (f.status === 'fulfilled') {
-      ls.set(LS_CACHE + place.id, { t: Date.now(), f: f.value, coords, smn: smn.value, q: q.value });
-      render(place, f.value, smn.value, smn.status === 'rejected', q.value, q.status === 'rejected', coords, 0);
+      ls.set(LS_CACHE + place.id, { t: Date.now(), f: f.value, coords, smn: smn.value, q: q.value, ry: raySub(ry.value, coords.lat, coords.lon) });
+      render(place, f.value, smn.value, smn.status === 'rejected', q.value, q.status === 'rejected', coords, 0, ry.value, ry.status === 'rejected');
     } else {
       const c = ls.get(LS_CACHE + place.id);
-      if (c) render(place, c.f, c.smn, !c.smn, c.q, !c.q, c.coords, c.t);
+      if (c) render(place, c.f, c.smn, !c.smn, c.q, !c.q, c.coords, c.t, c.ry, !c.ry);
       else showMsg('No se pudo cargar el pronóstico. Revisá la conexión.', true);
     }
   } catch (e) {
@@ -461,6 +564,7 @@ applyTheme(false);
 
 /* ---------- Novedades (historial de versiones para el usuario) ---------- */
 const NEWS = [
+  ['1.11', '13/11/2026', ['Nuevo: "Rayos cerca". Muestra si el satélite detecta rayos a tu alrededor y estima el riesgo de granizo en ese momento. Tocá la fila para ver el detalle.']],
   ['1.10', '13/11/2026', ['Las novedades de cada versión se ven dentro de la app.']],
   ['1.9', '13/11/2026', ['La tarjeta de alertas indica que las emite el Servicio Meteorológico Nacional (SMN).']],
   ['1.8', '13/11/2026', ['Niveles de granizo más fáciles de distinguir: bajo en amarillo, moderado en naranja y alto en rojo.',

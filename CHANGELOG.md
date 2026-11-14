@@ -2,6 +2,13 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.11 — 13/11/2026
+- Nueva fila "Rayos cerca" (satélite GOES-19 de NOAA, sensor GLM): rayos a menos de 50 km en la última media hora, distancia del más cercano y nivel de granizo según los rayos a menos de 10 km (5 / 20 / 80). Niveles calibrados con 48 granizadas en aeropuertos de Cuyo y 900 tormentas sin granizo (2018-2026).
+- Aviso de "salto brusco de rayos" (suele anticipar el granizo unos 25 min). Al tocar la fila se abre el detalle: mapa, rayos por minuto y cómo se calcula.
+- Si hay rayos cerca, el titular de la cabecera lo avisa.
+- Los rayos se actualizan en la publicación automática cada 5 min (scripts/rayos.py, con caché); si los datos tienen más de 20 min, la app avisa que no puede confirmar.
+- Pie: fuentes con NOAA (GOES-19).
+
 ## v1.10 — 13/11/2026
 - "Novedades" se abre en una ventana dentro de la app (antes llevaba a este archivo en el repo); texto pensado para el usuario.
 - Pie sin links: fuentes como texto (Open-Meteo · SMN · USGS) y sin la frase de las alertas (el aviso ya está en la ficha de riesgo).
