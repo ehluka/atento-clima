@@ -1,0 +1,49 @@
+name: Prueba rayos
+on:
+  push:
+    branches: [prueba-rayos]
+    paths: ['scripts/rayos.py', '.github/workflows/rayos-test.yml']
+permissions:
+  contents: write
+concurrency:
+  group: rayos-test
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Caché de rayos
+        uses: actions/cache@v4
+        with:
+          path: .raycache
+          key: rayos-test-${{ github.run_id }}
+          restore-keys: rayos-test-
+      - run: pip install -q numpy h5py
+      - name: Corrida 1
+        run: ls -la .raycache 2>/dev/null || echo "sin caché previa"; time python3 scripts/rayos.py data/rayos.json
+      - name: Corrida 2 (inmediata, con caché)
+        run: time python3 scripts/rayos.py data/rayos.json
+      - name: Corrida 3 (a los 90 s)
+        run: sleep 90; time python3 scripts/rayos.py data/rayos.json
+      - name: Revisar salida
+        run: |
+          python3 - <<'PY'
+          import json, time, gzip
+          from collections import Counter
+          d = json.load(open('data/rayos.json'))
+          print('t0 edad (min):', int(time.time() // 60) - d['t0'], '| puntos:', len(d['f']), '| rayos:', sum(x[3] for x in d['f']))
+          raw = open('data/rayos.json', 'rb').read()
+          print('tamaño', len(raw) // 1024, 'KB; gzip', len(gzip.compress(raw)) // 1024, 'KB')
+          c = Counter()
+          for la, lo, ago, n in d['f']: c[(round(la / 100), round(lo / 100))] += n
+          print('zonas (1 grado) con más rayos:', c.most_common(8))
+          PY
+      - name: Guardar resultado en la rama
+        run: |
+          mkdir -p prueba && cp data/rayos.json prueba/rayos.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add prueba/rayos.json
+          git commit -m "Prueba rayos: salida [skip ci]" || true
+          git push || true
