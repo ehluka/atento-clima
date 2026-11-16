@@ -124,16 +124,6 @@ async function placeName(lat, lon) {
 
 /* ---------- Nombre de una zona del SMN (el aviso no lo trae): departamento en el centro del polígono ---------- */
 const LS_ZONE = 'ac.zones';
-function polyCenter(p) {
-  let A = 0, x = 0, y = 0;
-  for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
-    const c = p[j][1] * p[i][0] - p[i][1] * p[j][0]; A += c; x += (p[j][1] + p[i][1]) * c; y += (p[j][0] + p[i][0]) * c;
-  }
-  const pt = A ? [y / (3 * A), x / (3 * A)] : null;
-  if (pt && inPoly(pt[0], pt[1], p)) return pt;
-  const m = [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length];
-  return inPoly(m[0], m[1], p) ? m : null;
-}
 async function fillZones() {
   const els = [...document.querySelectorAll('.zone[data-z]')], cache = ls.get(LS_ZONE, {});
   for (const key of new Set(els.map(e => e.dataset.z))) {
@@ -358,14 +348,13 @@ function zoneTag(x) {
     const t = Math.max(0, Math.min(1, -(ax * dx + ay * dy) / ((dx * dx + dy * dy) || 1))), px = ax + t * dx, py = ay + t * dy, d = Math.hypot(px, py);
     if (!best || d < best.d) best = { d, px, py };
   }
-  const c = polyCenter(poly);
   let pt = null;
-  if (best && c) {
-    const cx = (c[1] - lon) * kx, cy = (c[0] - lat) * ky, L = Math.hypot(cx - best.px, cy - best.py) || 1;
-    for (const km of [3, 1.5, 6, 10]) {
-      const f = Math.min(km / L, 1), q = [lat + (best.py + (cy - best.py) * f) / ky, lon + (best.px + (cx - best.px) * f) / kx];
-      if (inPoly(q[0], q[1], poly)) { pt = q; break; }
+  for (const r of [2, 4, 7]) {
+    for (let k = 0; k < 16 && best; k++) {
+      const ang = k * Math.PI / 8, q = [lat + (best.py + r * Math.sin(ang)) / ky, lon + (best.px + r * Math.cos(ang)) / kx];
+      if (inPoly(q[0], q[1], poly) && (!pt || Math.hypot((q[0] - lat) * ky, (q[1] - lon) * kx) < pt.d)) pt = Object.assign(q, { d: Math.hypot((q[0] - lat) * ky, (q[1] - lon) * kx) });
     }
+    if (pt) break;
   }
   if (!pt) return '';
   const key = pt[0].toFixed(2) + ',' + pt[1].toFixed(2), n = ls.get(LS_ZONE, {})[key];
