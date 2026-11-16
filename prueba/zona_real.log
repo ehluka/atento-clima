@@ -1,49 +1,5 @@
   zonas: ['-33.23,-66.28='] {"-33.23,-66.28":"Juan Martín de Pueyrredón"}
 [sl_dias] titular: 'Riesgo moderado de granizo hoy 18:00 h'
-  alertas: Alertas oficiales | Servicio Meteorológico Nacional (SMN) | Tormentas | Amarillo | Informate | Vigente ahora · hasta hoy 11:59 h | Detalle | Tormentas | Naranja | Preparate | Desde hoy 12:00 h · hasta hoy 23:59 h | Detalle | EN ZONAS VECINAS | Tormentas | Amarillo | A 6 km al este | Desde mar 17 00:00 h · hasta mar 17 05:59 h |  | Sin avisos a muy corto plazo en tu zona. Actualizado hace 17 min · smn.gob.ar
-  errores: ['404 https://raw.githubusercontent.com/ehluka/atento-clima/datos/rayos.json?t=29913992', 'Failed to load resource: the server responded with a status of 404 ()']
-  dias: ['Tormenta. Mínima 17°, máxima 27°. Lluvia probable entre las 11 y las 21 h (hasta 100%), unos 6 mm. Tormentas posibles entre las 11 y las 22 h. Riesgo moderado de granizo desde las 11 h. Ráfagas de hasta 44 km/h desde las 13 h. Índice UV muy alto: evitá el sol del mediodía.', 'Llovizna débil. Mínima 16°, máxima 26°. Lluvia probable entre las 14 y las 20 h (hasta 64%). Tormentas posibles desde las 15 h. Riesgo bajo de granizo a las 23 h. Ráfagas de hasta 51 km/h hasta las 14 h. Índice UV muy alto: evitá el sol del mediodía.', 'Llovizna. Mínima 13°, máxima 26°. Lluvia probable hasta las 17 h (hasta 52%). Tormentas posibles hasta las 18 h. Riesgo bajo de granizo hasta las 18 h. Viento leve (ráfagas de hasta 36 km/h). Índice UV muy alto: evitá el sol del mediodía.', 'Tormenta. Mínima 15°, máxima 22°. Lluvia probable entre las 5 y las 22 h (hasta 97%), unos 27 mm. Tormentas posibles entre las 9 y las 23 h. Riesgo bajo de granizo entre las 9 y las 23 h. Ráfagas de hasta 43 km/h desde las 16 h. Índice UV muy alto: evitá el sol del mediodía.', 'Llovizna. Mínima 13°, máxima 23°. Lluvia probable entre las 3 y las 5 h (hasta 45%), unos 3 mm. Tormentas posibles entre las 2 y las 6 h. Ráfagas de hasta 54 km/h entre las 10 y las 20 h. Índice UV muy alto: evitá el sol del mediodía.', 'Tormenta con granizo. Mínima 16°, máxima 24°. Lluvia probable entre las 6 y las 21 h (hasta 91%), unos 12 mm. Tormentas posibles entre las 7 y las 22 h. Riesgo alto de granizo entre las 8 y las 21 h. Ráfagas de hasta 52 km/h desde las 13 h. Índice UV muy alto: evitá el sol del mediodía.', 'Llovizna débil. Mínima 16°, máxima 25°. Poca chance de lluvia (hasta 25%). Ráfagas de hasta 58 km/h hasta las 17 h. Índice UV muy alto: evitá el sol del mediodía.']
-  zonas: ['-32.81,-68.76=, Las Heras', '-32.81,-68.76=, Las Heras'] {"-32.81,-68.76":"Las Heras"}
-[mendoza] titular: 'Riesgo bajo de tormenta hoy 14:00 h'
-  alertas: Alertas oficiales | Servicio Meteorológico Nacional (SMN) |  | Sin alertas vigentes para este lugar. |  | EN ZONAS VECINAS | Tormentas | Naranja | A 7 km al noreste, Las Heras | Desde hoy 12:00 h · hasta hoy 17:59 h | Tormentas | Amarillo | A 7 km al noreste, Las Heras | Desde hoy 18:00 h · hasta hoy 23:59 h |  | Sin avisos a muy corto plazo en tu zona. Actualizado hace 17 min · smn.gob.ar
-  errores: ['404 https://raw.githubusercontent.com/ehluka/atento-clima/datos/rayos.json?t=29913992', 'Failed to load resource: the server responded with a status of 404 ()']
-  zonas: ['-33.23,-66.28='] {"-33.23,-66.28":"Juan Martín de Pueyrredón"}
-[san_luis] titular: 'Riesgo moderado de granizo hoy 18:00 h'
-  alertas: Alertas oficiales | Servicio Meteorológico Nacional (SMN) | Tormentas | Amarillo | Informate | Vigente ahora · hasta hoy 11:59 h | Detalle | Tormentas | Naranja | Preparate | Desde hoy 12:00 h · hasta hoy 23:59 h | Detalle | EN ZONAS VECINAS | Tormentas | Amarillo | A 6 km al este | Desde mar 17 00:00 h · hasta mar 17 05:59 h |  | Sin avisos a muy corto plazo en tu zona. Actualizado hace 17 min · smn.gob.ar
-  errores: ['404 https://raw.githubusercontent.com/ehluka/atento-clima/datos/rayos.json?t=29913992', 'Failed to load resource: the server responded with a status of 404 ()']
-SIN HERO ['404 https://raw.githubusercontent.com/ehluka/atento-clima/datos/rayos.json?t=29913992', 'Failed to load resource: the server responded with a status of 404 ()'] 
-<header class="top">
-  <div class="brand"><img src="icons/icon.svg" alt="" width="28" height="28"><span>Atento Clima</span></div>
-  <div class="top-btns">
-    <button id="theme" class="icon-btn theme-btn" aria-label="Tema automático (según el celular)" title="Tema automático (según el celular)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"></path></svg></button>
-    <button id="refresh" class="icon-btn spin" aria-label="Actualizar">⟳</button>
-  </div>
-</header>
-
-<div id="install" class="install" hidden=""></div>
-
-<nav id="places" class="places" aria-label="Lugares"><button class="chip" id="addBtn" aria-label="Agregar lugar" title="Agregar lugar">＋</button><button class="chip on" data-id="gps">📍 Luján de Cuyo</button><b
-SIN HERO ['404 https://raw.githubusercontent.com/ehluka/atento-clima/datos/rayos.json?t=29913993', 'Failed to load resource: the server responded with a status of 404 ()'] 
-<header class="top">
-  <div class="brand"><img src="icons/icon.svg" alt="" width="28" height="28"><span>Atento Clima</span></div>
-  <div class="top-btns">
-    <button id="theme" class="icon-btn theme-btn" aria-label="Tema automático (según el celular)" title="Tema automático (según el celular)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"></path></svg></button>
-    <button id="refresh" class="icon-btn spin" aria-label="Actualizar">⟳</button>
-  </div>
-</header>
-
-<div id="install" class="install" hidden=""></div>
-
-<nav id="places" class="places" aria-label="Lugares"><button class="chip" id="addBtn" aria-label="Agregar lugar" title="Agregar lugar">＋</button><button class="chip on" data-id="gps">📍 Maipú</button><button cl
-SIN HERO ['404 https://raw.githubusercontent.com/ehluka/atento-clima/datos/rayos.json?t=29913993', 'Failed to load resource: the server responded with a status of 404 ()'] 
-<header class="top">
-  <div class="brand"><img src="icons/icon.svg" alt="" width="28" height="28"><span>Atento Clima</span></div>
-  <div class="top-btns">
-    <button id="theme" class="icon-btn theme-btn" aria-label="Tema automático (según el celular)" title="Tema automático (según el celular)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"></path></svg></button>
-    <button id="refresh" class="icon-btn spin" aria-label="Actualizar">⟳</button>
-  </div>
-</header>
-
-<div id="install" class="install" hidden=""></div>
-
-<nav id="places" class="places" aria-label="Lugares"><button class="chip" id="addBtn" aria-label="Agregar lugar" title="Agregar lugar">＋</button><button class="chip on" data-id="gps">📍 Godoy Cruz</button><butt
+  alertas: Alertas oficiales | Servicio Meteorológico Nacional (SMN) | Tormentas | Amarillo | Informate | Vigente ahora · hasta hoy 11:59 h | Detalle | Tormentas | Naranja | Preparate | Desde hoy 12:00 h · hasta hoy 23:59 h | Detalle | EN ZONAS VECINAS | Tormentas | Amarillo | A 6 km al este | Desde mar 17 00:00 h · hasta mar 17 05:59 h |  | Sin avisos a muy corto plazo en tu zona. Actualizado hace 22 min · smn.gob.ar
+  errores: ['404 https://raw.githubusercontent.com/ehluka/atento-clima/datos/rayos.json?t=29913996', 'Failed to load resource: the server responded with a status of 404 ()']
+  dias: ['Granizo moderado desde las 11 h · tormentas de 11 a 22 h · ráfagas de 44 km/h.', 'Granizo bajo a las 23 h · tormentas desde las 15 h · ráfagas de 51 km/h.', 'Granizo bajo hasta las 18 h · tormentas hasta las 18 h.', 'Granizo bajo de 9 a 23 h · tormentas de 9 a 23 h · ráfagas de 43 km/h.', 'Tormentas de 2 a 6 h · ráfagas de 54 km/h.', 'Granizo alto de 8 a 21 h · tormentas de 7 a 22 h · ráfagas de 52 km/h.', 'Sin lluvias · ráfagas de 58 km/h.']
