@@ -2,6 +2,9 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.15.1 — 16/11/2026
+- Resumen por día más corto (1–2 filas) y empieza con el significado del ícono en negrita (ej. "**Nublado.** Granizo bajo a las 23 h · ráfagas de 51 km/h.").
+
 ## v1.15 — 16/11/2026
 - Rayos cada 5 min: el cron de GitHub se atrasaba hasta casi 3 h (la app mostraba "sin datos recientes, hace 147 min"). Nuevo workflow `rayos-continuo.yml`: queda corriendo ~5,5 h y publica `rayos.json` cada 5 min en la rama `datos` (un solo commit que se reemplaza); el cron horario solo lo relanza. La app lee esa copia (raw.githubusercontent.com) y la del sitio, y usa la más nueva.
 - "Próximos días" desplegable: al tocar un día se ve un resumen armado con el pronóstico por hora (cielo, mín/máx, lluvia y franja horaria, tormentas, granizo, ráfagas, UV).

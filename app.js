@@ -290,7 +290,7 @@ const windLevel = g => g >= 90 ? 3 : g >= 70 ? 2 : g >= 50 ? 1 : 0;
 
 // Comentario breve de un día (al tocarlo en "Próximos días")
 function dayText(hs, D, i, hailMax) {
-  if (!hs.length) return WMO[D.weather_code[i]] || '';
+  if (!hs.length) return `<b>${WMO[D.weather_code[i]] || ''}</b>`;
   const span = xs => { const a = xs[0].t.getHours(), b = xs[xs.length - 1].t.getHours() + 1; return xs.length >= 18 ? 'todo el día' : a === b - 1 ? `a las ${a} h` : a === 0 ? `hasta las ${b} h` : b === 24 ? `desde las ${a} h` : `de ${a} a ${b} h`; };
   const out = [], hl = hs.filter(h => h.hail > 0), st = hs.filter(h => stormLevel(h) > 0), wet = hs.filter(h => (h.pp ?? 0) >= 40);
   if (hl.length || hailMax) out.push(`Granizo ${LVL[Math.max(hailMax, ...hl.map(h => h.hail))].toLowerCase()}${hl.length ? ' ' + span(hl) : ''}`);
@@ -300,7 +300,7 @@ function dayText(hs, D, i, hailMax) {
   const g = Math.max(...hs.map(h => h.gust ?? 0));
   if (g >= 40) out.push(`ráfagas de ${Math.round(g)} km/h`);
   else if (!wet.length && (D.uv_index_max?.[i] ?? 0) >= 8) out.push('UV muy alto');
-  return out.join(' · ') + '.';
+  return `<b>${WMO[D.weather_code[i]] || ''}.</b> ` + out.join(' · ') + '.';
 }
 
 function analyze(f) {
@@ -688,6 +688,7 @@ applyTheme(false);
 
 /* ---------- Novedades (historial de versiones para el usuario) ---------- */
 const NEWS = [
+  ['1.15.1', '16/11/2026', ['Al tocar un día, el resumen arranca diciendo qué significa el ícono (soleado, nublado, llovizna…).']],
   ['1.15', '16/11/2026', ['Rayos más al día: se actualizan cada 5 minutos.', 'Tocá un día en “Próximos días” para ver un resumen: lluvia, tormentas, granizo, viento y UV.', 'Los nombres largos de lugar se acortan y el botón “＋” para agregar lugares queda siempre a la vista.', 'Las alertas de zonas vecinas indican también la dirección.']],
   ['1.14', '15/11/2026', ['El titular, el gráfico por hora y los próximos días ahora coinciden con las alertas del SMN que mencionan granizo.', 'Si hay una alerta del SMN en una zona vecina (a menos de 20 km), la app lo avisa con la distancia y el departamento.']],
   ['1.13', '14/11/2026', ['Cada alerta dice qué hacer según su color, como lo indica el SMN: Informate, Preparate o Seguí las instrucciones oficiales.', 'Las advertencias (niebla, ceniza, polvo, humo) se muestran en violeta.']],
