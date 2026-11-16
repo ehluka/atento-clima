@@ -93,7 +93,7 @@ details summary{cursor:pointer}
 .days summary::-webkit-details-marker{display:none}
 .days .chev{color:var(--muted);transition:transform .2s;font-size:1.1rem}
 .days details[open] .chev{transform:rotate(90deg)}
-.d-txt{margin:8px 0 2px;padding:10px 12px;background:var(--panel);border-radius:10px;font-size:.92rem;line-height:1.45;color:var(--text)}
+.d-txt{margin:6px 0 2px;padding:8px 12px;background:var(--panel);border-radius:10px;font-size:.92rem;line-height:1.45;color:var(--text)}
 .d-name{display:flex;flex-direction:column;line-height:1.25}
 .d-hail{font-size:.7rem;padding:1px 7px;margin-top:2px;align-self:flex-start;text-transform:none}
 .d-name{text-transform:capitalize}

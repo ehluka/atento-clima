@@ -7,7 +7,7 @@ for f in ('alerts.json', 'rayos.json'):
 srv = subprocess.Popen(['python3', '-m', 'http.server', '8765', '-d', 'prueba/site'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); time.sleep(1)
 with sync_playwright() as p:
     b = p.chromium.launch()
-    for name, lat, lon in [('sl_dias', -33.30, -66.34), ('mendoza', -32.89, -68.83), ('san_luis', -33.30, -66.34), ('lujan', -33.04, -68.88), ('maipu', -32.98, -68.79), ('godoy_cruz', -32.93, -68.85)]:
+    for name, lat, lon in [('sl_dias', -33.30, -66.34)]: #[('mendoza', -32.89, -68.83), ('san_luis', -33.30, -66.34), ('lujan', -33.04, -68.88), ('maipu', -32.98, -68.79), ('godoy_cruz', -32.93, -68.85)]:
         ctx = b.new_context(geolocation=dict(latitude=lat, longitude=lon), permissions=['geolocation'], locale='es-AR', timezone_id='America/Argentina/Buenos_Aires', viewport=dict(width=360, height=800), device_scale_factor=2, service_workers='block')
         ctx.add_init_script("localStorage.setItem('ac.places', JSON.stringify([{id:'sl',name:'Villa Mercedes',lat:-33.68,lon:-65.46,prov:'San Luis'}]))")
         pg = ctx.new_page(); errs = []

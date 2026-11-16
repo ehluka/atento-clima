@@ -290,22 +290,17 @@ const windLevel = g => g >= 90 ? 3 : g >= 70 ? 2 : g >= 50 ? 1 : 0;
 
 // Comentario breve de un día (al tocarlo en "Próximos días")
 function dayText(hs, D, i, hailMax) {
-  const span = xs => { const a = xs[0].t.getHours(), b = xs[xs.length - 1].t.getHours() + 1; return xs.length >= 18 ? 'casi todo el día' : a === b - 1 ? `a las ${a} h` : a === 0 ? `hasta las ${b} h` : b === 24 ? `desde las ${a} h` : `entre las ${a} y las ${b} h`; };
-  const out = [`${WMO[D.weather_code[i]] || 'Sin dato'}. Mínima ${Math.round(D.temperature_2m_min[i])}°, máxima ${Math.round(D.temperature_2m_max[i])}°.`];
-  if (!hs.length) return out.join(' ');
-  const ppMax = Math.max(...hs.map(h => h.pp ?? 0)), mm = hs.reduce((s, h) => s + (h.mm || 0), 0), wet = hs.filter(h => (h.pp ?? 0) >= 40);
-  out.push(wet.length ? `Lluvia probable ${span(wet)} (hasta ${ppMax}%)${mm >= 1 ? `, unos ${Math.round(mm)} mm` : ''}.` : ppMax >= 20 ? `Poca chance de lluvia (hasta ${ppMax}%).` : 'Sin lluvias previstas.');
-  const st = hs.filter(h => stormLevel(h) > 0);
-  if (st.length) out.push(`Tormentas posibles ${span(st)}.`);
-  const hl = hs.filter(h => h.hail > 0), hlv = Math.max(0, ...hl.map(h => h.hail));
-  if (hl.length) out.push(`Riesgo ${LVL[Math.max(hlv, hailMax)].toLowerCase()} de granizo ${span(hl)}.`);
-  else if (hailMax) out.push(`Riesgo ${LVL[hailMax].toLowerCase()} de granizo por alerta del SMN.`);
+  if (!hs.length) return WMO[D.weather_code[i]] || '';
+  const span = xs => { const a = xs[0].t.getHours(), b = xs[xs.length - 1].t.getHours() + 1; return xs.length >= 18 ? 'todo el día' : a === b - 1 ? `a las ${a} h` : a === 0 ? `hasta las ${b} h` : b === 24 ? `desde las ${a} h` : `de ${a} a ${b} h`; };
+  const out = [], hl = hs.filter(h => h.hail > 0), st = hs.filter(h => stormLevel(h) > 0), wet = hs.filter(h => (h.pp ?? 0) >= 40);
+  if (hl.length || hailMax) out.push(`Granizo ${LVL[Math.max(hailMax, ...hl.map(h => h.hail))].toLowerCase()}${hl.length ? ' ' + span(hl) : ''}`);
+  if (st.length) out.push(`${out.length ? 'tormentas' : 'Tormentas'} ${span(st)}`);
+  else if (wet.length) out.push(`${out.length ? 'lluvia' : 'Lluvia'} ${span(wet)}`);
+  if (!out.length) out.push('Sin lluvias');
   const g = Math.max(...hs.map(h => h.gust ?? 0));
-  if (g >= 40) { const gs = hs.filter(h => (h.gust ?? 0) >= Math.max(40, g - 10)); out.push(`Ráfagas de hasta ${Math.round(g)} km/h ${span(gs)}.`); }
-  else out.push(`Viento leve (ráfagas de hasta ${Math.round(g)} km/h).`);
-  const uv = D.uv_index_max?.[i] ?? 0;
-  if (uv >= 8) out.push('Índice UV muy alto: evitá el sol del mediodía.'); else if (uv >= 6) out.push('Índice UV alto: usá protector.');
-  return out.join(' ');
+  if (g >= 40) out.push(`ráfagas de ${Math.round(g)} km/h`);
+  else if (!wet.length && (D.uv_index_max?.[i] ?? 0) >= 8) out.push('UV muy alto');
+  return out.join(' · ') + '.';
 }
 
 function analyze(f) {
