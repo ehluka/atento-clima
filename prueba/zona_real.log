@@ -1,0 +1,12 @@
+[mendoza] titular: 'Riesgo bajo de granizo lun 16 13:00 h'
+  alertas: Alertas oficiales | Servicio Meteorológico Nacional (SMN) |  | Sin alertas vigentes para este lugar. |  | EN ZONAS VECINAS | Tormentas | Amarillo | A 7 km, Santa Rosa | Vigente ahora · hasta hoy 23:59 h | Tormentas | Amarillo | A 7 km, Santa Rosa | Desde lun 16 06:00 h · hasta lun 16 11:59 h | Tormentas | Naranja | A 7 km, Santa Rosa | Desde lun 16 12:00 h · hasta lun 16 17:59 h | Tormentas | Amarillo | A 7 km, Santa Rosa | Desde lun 16 18:00 h · hasta mar 17 05:59 h |  | Sin avisos a muy corto plazo en tu zona. Actualizado hace 6 min · smn.gob.ar
+  errores: []
+[san_luis] titular: 'Riesgo alto de granizo lun 16 13:00 h'
+  alertas: Alertas oficiales | Servicio Meteorológico Nacional (SMN) | Tormentas | Amarillo | Informate | Vigente ahora · hasta hoy 23:59 h | Detalle | Tormentas | Amarillo | Informate | Desde lun 16 06:00 h · hasta lun 16 11:59 h | Detalle | Tormentas | Naranja | Preparate | Desde lun 16 12:00 h · hasta lun 16 23:59 h | Detalle | Tormentas | Amarillo | Informate | Desde mar 17 00:00 h · hasta mar 17 05:59 h | Detalle |  | Sin avisos a muy corto plazo en tu zona. Actualizado hace 6 min · smn.gob.ar
+  errores: []
+[lujan] titular: 'Riesgo bajo de granizo lun 16 12:00 h'
+  alertas: Alertas oficiales | Servicio Meteorológico Nacional (SMN) |  | Sin alertas vigentes para este lugar. |  | Sin avisos a muy corto plazo en tu zona. Actualizado hace 6 min · smn.gob.ar
+  errores: []
+[alvear] titular: 'Riesgo moderado de granizo lun 16 12:00 h'
+  alertas: Alertas oficiales | Servicio Meteorológico Nacional (SMN) | Tormentas | Amarillo | Informate | Vigente ahora · hasta hoy 23:59 h | Detalle | Tormentas | Amarillo | Informate | Desde lun 16 06:00 h · hasta lun 16 11:59 h | Detalle | Tormentas | Naranja | Preparate | Desde lun 16 12:00 h · hasta lun 16 17:59 h | Detalle | Tormentas | Amarillo | Informate | Desde lun 16 18:00 h · hasta lun 16 23:59 h | Detalle |  | Sin avisos a muy corto plazo en tu zona. Actualizado hace 6 min · smn.gob.ar
+  errores: []
