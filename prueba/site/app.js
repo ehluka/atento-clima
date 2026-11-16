@@ -138,7 +138,7 @@ async function fillZones() {
         cache[key] = name; ls.set(LS_ZONE, cache);
       } catch { continue; }
     }
-    if (name) els.filter(e => e.dataset.z === key).forEach(e => e.textContent = ', ' + name);
+    if (name) els.filter(e => e.dataset.z === key && e.dataset.self !== norm(name)).forEach(e => e.textContent = ', ' + name);
   }
 }
 
@@ -290,7 +290,7 @@ const windLevel = g => g >= 90 ? 3 : g >= 70 ? 2 : g >= 50 ? 1 : 0;
 
 // Comentario breve de un día (al tocarlo en "Próximos días")
 function dayText(hs, D, i, hailMax) {
-  const span = xs => { const a = xs[0].t.getHours(), b = xs[xs.length - 1].t.getHours() + 1; return xs.length >= 18 ? 'casi todo el día' : a === b - 1 ? `a las ${a} h` : `entre las ${a} y las ${b} h`; };
+  const span = xs => { const a = xs[0].t.getHours(), b = xs[xs.length - 1].t.getHours() + 1; return xs.length >= 18 ? 'casi todo el día' : a === b - 1 ? `a las ${a} h` : a === 0 ? `hasta las ${b} h` : b === 24 ? `desde las ${a} h` : `entre las ${a} y las ${b} h`; };
   const out = [`${WMO[D.weather_code[i]] || 'Sin dato'}. Mínima ${Math.round(D.temperature_2m_min[i])}°, máxima ${Math.round(D.temperature_2m_max[i])}°.`];
   if (!hs.length) return out.join(' ');
   const ppMax = Math.max(...hs.map(h => h.pp ?? 0)), mm = hs.reduce((s, h) => s + (h.mm || 0), 0), wet = hs.filter(h => (h.pp ?? 0) >= 40);
@@ -363,7 +363,7 @@ function polyKm(lat, lon, poly) {
 }
 // Alertas de zonas vecinas (a menos de maxKm) que no cubren el punto
 // Punto de la zona más cercano al lugar, un poco hacia adentro: ahí se busca el nombre del departamento
-function zoneTag(x) {
+function zoneTag(x, self) {
   const [lat, lon] = x.ctr, kx = 111.32 * Math.cos(lat * Math.PI / 180), ky = 110.57;
   const poly = x.polygons.reduce((m, p) => polyKm(lat, lon, p) < polyKm(lat, lon, m) ? p : m);
   let best = null;
@@ -382,7 +382,8 @@ function zoneTag(x) {
   }
   if (!pt) return '';
   const key = pt[0].toFixed(2) + ',' + pt[1].toFixed(2), n = ls.get(LS_ZONE, {})[key];
-  return `<span class="zone" data-z="${key}">${n ? ', ' + esc(n) : ''}</span>`;
+  const dir = ' al ' + DIRS[Math.round((Math.atan2(best.px, best.py) * 180 / Math.PI + 360) % 360 / 45) % 8];
+  return `${dir}<span class="zone" data-z="${key}" data-self="${esc(norm(self || ''))}">${n && norm(n) !== norm(self || '') ? ', ' + esc(n) : ''}</span>`;
 }
 function smnNear(data, lat, lon, hits, maxKm = 20) {
   const now = Date.now(), key = a => [a.event, a.level, a.onset, a.expires].join('|');
@@ -572,7 +573,7 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
     </li>`).join('')}</ul>`;
     if (near.length) html += `<div class="near"><div class="near-h">En zonas vecinas</div><ul class="list">${near.map(x => `<li>
       <div class="row"><b>${esc(x.event)}</b>${badge(x)}</div>
-      <div class="muted small">${x.km < 1 ? 'A menos de 1 km' : 'A ' + Math.round(x.km) + ' km'}${x.area ? ', ' + esc(x.area.slice(0, 60)) : zoneTag(x)}</div>
+      <div class="muted small">${x.km < 1 ? 'A menos de 1 km' : 'A ' + Math.round(x.km) + ' km'}${x.area ? ', ' + esc(x.area.slice(0, 60)) : zoneTag(x, place.gps ? (gpsName.name || '').replace(/^(Departamento|Partido)( de)? /i, '') : place.name)}</div>
       <div class="muted small">${vig(x)}</div></li>`).join('')}</ul></div>`;
     html += `<p class="muted small">${acp.length ? '' : acpStale ? 'Avisos a muy corto plazo: no disponibles ahora. ' : 'Sin avisos a muy corto plazo en tu zona. '}Actualizado ${fmtAgo(Date.parse(smnData.updated))} ·
       <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">smn.gob.ar</a></p>`;
@@ -692,6 +693,7 @@ applyTheme(false);
 
 /* ---------- Novedades (historial de versiones para el usuario) ---------- */
 const NEWS = [
+  ['1.15', '16/11/2026', ['Rayos más al día: se actualizan cada 5 minutos.', 'Tocá un día en “Próximos días” para ver un resumen: lluvia, tormentas, granizo, viento y UV.', 'Los nombres largos de lugar se acortan y el botón “＋” para agregar lugares queda siempre a la vista.', 'Las alertas de zonas vecinas indican también la dirección.']],
   ['1.14', '15/11/2026', ['El titular, el gráfico por hora y los próximos días ahora coinciden con las alertas del SMN que mencionan granizo.', 'Si hay una alerta del SMN en una zona vecina (a menos de 20 km), la app lo avisa con la distancia y el departamento.']],
   ['1.13', '14/11/2026', ['Cada alerta dice qué hacer según su color, como lo indica el SMN: Informate, Preparate o Seguí las instrucciones oficiales.', 'Las advertencias (niebla, ceniza, polvo, humo) se muestran en violeta.']],
   ['1.12', '14/11/2026', ['Las alertas del SMN muestran primero la que está vigente y después las próximas.', 'Las fichas de riesgo también tienen en cuenta las alertas oficiales del SMN.']],
