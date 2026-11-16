@@ -1,5 +1,5 @@
 """Compara Atento Clima (publicado) contra las páginas por ciudad de Piedra Libre, mismo momento."""
-# v1.14
+# v1.16
 import re, time
 from playwright.sync_api import sync_playwright
 BASE = 'https://ehluka.github.io/atento-clima/'

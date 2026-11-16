@@ -29,3 +29,4 @@ with sync_playwright() as p:
         ctx.close()
     b.close()
 srv.terminate()
+

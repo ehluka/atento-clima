@@ -290,7 +290,7 @@ const windLevel = g => g >= 90 ? 3 : g >= 70 ? 2 : g >= 50 ? 1 : 0;
 
 // Comentario breve de un día (al tocarlo en "Próximos días")
 function dayText(hs, D, i, hailMax) {
-  if (!hs.length) return WMO[D.weather_code[i]] || '';
+  if (!hs.length) return `<b>${WMO[D.weather_code[i]] || ''}</b>`;
   const span = xs => { const a = xs[0].t.getHours(), b = xs[xs.length - 1].t.getHours() + 1; return xs.length >= 18 ? 'todo el día' : a === b - 1 ? `a las ${a} h` : a === 0 ? `hasta las ${b} h` : b === 24 ? `desde las ${a} h` : `de ${a} a ${b} h`; };
   const out = [], hl = hs.filter(h => h.hail > 0), st = hs.filter(h => stormLevel(h) > 0), wet = hs.filter(h => (h.pp ?? 0) >= 40);
   if (hl.length || hailMax) out.push(`Granizo ${LVL[Math.max(hailMax, ...hl.map(h => h.hail))].toLowerCase()}${hl.length ? ' ' + span(hl) : ''}`);
@@ -300,7 +300,7 @@ function dayText(hs, D, i, hailMax) {
   const g = Math.max(...hs.map(h => h.gust ?? 0));
   if (g >= 40) out.push(`ráfagas de ${Math.round(g)} km/h`);
   else if (!wet.length && (D.uv_index_max?.[i] ?? 0) >= 8) out.push('UV muy alto');
-  return out.join(' · ') + '.';
+  return `<b>${WMO[D.weather_code[i]] || ''}.</b> ` + out.join(' · ') + '.';
 }
 
 function analyze(f) {
