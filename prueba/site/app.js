@@ -349,7 +349,7 @@ function zoneTag(x) {
     if (!best || d < best.d) best = { d, px, py };
   }
   let pt = null;
-  for (const r of [2, 4, 7]) {
+  for (const r of [5, 8, 3]) {
     for (let k = 0; k < 16 && best; k++) {
       const ang = k * Math.PI / 8, q = [lat + (best.py + r * Math.sin(ang)) / ky, lon + (best.px + r * Math.cos(ang)) / kx];
       if (inPoly(q[0], q[1], poly) && (!pt || Math.hypot((q[0] - lat) * ky, (q[1] - lon) * kx) < pt.d)) pt = Object.assign(q, { d: Math.hypot((q[0] - lat) * ky, (q[1] - lon) * kx) });
