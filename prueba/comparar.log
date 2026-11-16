@@ -1,5 +1,5 @@
 ====================================================================== 
-# san-luis/ciudad-de-san-luis -33.3 -66.34 00:55:39
+# san-luis/ciudad-de-san-luis -33.3 -66.34 01:17:27
 --- PIEDRA LIBRE ---
 Granizo por provincia
 /
@@ -8,9 +8,9 @@ San Luis
 Ciudad de San Luis
 GRANIZO EN VIVO · SAN LUIS CAPITAL, SAN LUIS
 ¿Cae piedra hoy en San Luis capital?
-Riesgo bajo de granizo desde las 21 h. 1 de 3 modelos lo anticipan.
-Hoy hay riesgo bajo de granizo, sobre todo de las 21 a las 22 h.
-Actualizado el domingo 15 de noviembre a las 21:55 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
+Alerta amarilla por tormentas con granizo. Tormentas, algunas fuertes, con granizo, ráfagas y actividad eléctrica. Es para toda la región: te avisamos si se arma una tormenta cerca.
+Para hoy los modelos no ven granizo en San Luis capital.
+Actualizado el domingo 15 de noviembre a las 22:17 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
 ALERTAS DEL SMN
 Alerta amarilla por tormentas con granizo
 Vigente, hasta las 24 h
@@ -30,28 +30,28 @@ REPORTES DE VECINOS, 3 H
 Nadie reportó granizo a menos de 30 km en las últimas 3 horas.
 Pronóstico de granizo en San Luis capital
 Hoy
-BAJO
-Riesgo bajo de granizo, más probable de las 21 a las 22 h, con el pico cerca de las 21 h. 1 de 3 modelos lo anticipan.
+SIN RIESGO
+Los modelos no muestran señales de granizo.
 Mañana
 ALTO
-Riesgo alto de granizo, más probable de las 12 a las 20 h, con el pico cerca de las 14 h. Posible granizo de 2 cm o más. 3 de 3 modelos lo anticipan.
+Riesgo alto de granizo, más probable de las 11 a las 20 h, con el pico cerca de las 14 h. Posible granizo de 2 cm o más. 3 de 3 modelos lo anticipan.
 Martes 17
 BAJO
-Riesgo bajo de granizo, más probable de las 17 a las 18 h, con el pico cerca de las 17 h. 1 de 3 modelos lo anticipan.
+Riesgo bajo de granizo, más probable de las 16 a las 24 h, con el pico cerca de las 23 h. 2 de 3 modelos lo anticipan.
 PRÓXIMAS 24 HORAS
-21 h
-0 h
-3 h
-6 h
-9 h
-12 h
-15 h
-18 h
+22 h
+1 h
+4 h
+7 h
+10 h
+13 h
+16 h
+19 h
 Bajo
 Moderado
 Alto
 Muy alto
-Pronóstico de Piedra Libre con tres modelos (GFS, ECMWF e ICON), calculado a las 20:14 h. Es una estimación: las alertas del SMN siempre van primero.
+Pronóstico de Piedra Libre con tres modelos (GFS, ECMWF e ICON), calculado a las 22:14 h. Es una estimación: las alertas del SMN siempre van primero.
 Que te avise antes de que caiga
 Guardá tu casa o tu campo en Ciudad de San Luis. Piedra Libre te avisa cuando se acerca granizo y a qué hora llegaría la tormenta.
 Descargá la app gratis
@@ -76,22 +76,18 @@ Villa Mercedes
 Naschel
 Villa Reynolds
 Tilisarao
-Justo Daract
-Quines
-Concarán
-Sampacho
 --- ATENTO CLIMA ---
 Departamento Juan Martín de Pueyrredón, San Luis
 Ubicación actual
 21°
-Llovizna
+Nublado
 Riesgo alto de granizo lun 16 13:00 h
 Sensación 21°
-Viento 19 km/h
-Ráfagas 32
-Humedad 82%
-Rayos: sin datos recientes
-Son de hace 56 min: no se puede confirmar si hay rayos cerca
+Viento 17 km/h
+Ráfagas 34
+Humedad 84%
+Sin rayos cerca
+Ninguno a menos de 50 km · hace 4 min
 Riesgo estimado · próximas 24 h
 Granizo
 Alto
@@ -125,11 +121,9 @@ Amarillo
 Informate
 Desde mar 17 00:00 h · hasta mar 17 05:59 h
 Detalle
-Avisos a muy corto plazo: no disponibles ahora. Actualizado hace 55 min · smn.gob.ar
+Sin avisos a muy corto plazo en tu zona. Actualizado hace 2 min · smn.gob.ar
 Por hora
 Ahora
-67%
-22 h
 56%
 23 h
 43%
@@ -175,7 +169,8 @@ Ahora
 73%
 20 h
 55%
-22°
+21 h
+41%
 21°
 21°
 20°
@@ -198,6 +193,7 @@ Ahora
 20°
 22°
 22°
+19°
 19°
 Barras azules: probabilidad de lluvia. Recuadro de color: horas con riesgo de granizo (amarillo bajo, naranja moderado, rojo alto).
 Próximos días
@@ -239,7 +235,7 @@ Sismos cercanos · últimos 7 días
 M 4.8 a 311 km
 hace 21 h
 ====================================================================== 
-# san-luis/villa-mercedes -33.68 -65.46 00:55:47
+# san-luis/villa-mercedes -33.68 -65.46 01:17:35
 --- PIEDRA LIBRE ---
 Granizo por provincia
 /
@@ -250,7 +246,7 @@ GRANIZO EN VIVO · VILLA MERCEDES, SAN LUIS
 ¿Cae piedra hoy en Villa Mercedes?
 Riesgo moderado de granizo desde la medianoche. 1 de 3 modelos lo anticipan.
 Para hoy los modelos no ven granizo en Villa Mercedes.
-Actualizado el domingo 15 de noviembre a las 21:55 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
+Actualizado el domingo 15 de noviembre a las 22:17 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
 ALERTAS DEL SMN
 Alerta amarilla por tormentas con granizo
 Vigente, hasta las 24 h
@@ -279,14 +275,14 @@ Martes 17
 SIN RIESGO
 Los modelos no muestran señales de granizo.
 PRÓXIMAS 24 HORAS
-21 h
-0 h
-3 h
-6 h
-9 h
-12 h
-15 h
-18 h
+22 h
+1 h
+4 h
+7 h
+10 h
+13 h
+16 h
+19 h
 Bajo
 Moderado
 Alto
@@ -327,14 +323,14 @@ Toda la provincia de San Luis
 Departamento General Pedernera, San Luis
 Ubicación actual
 22°
-Parcialmente nublado
+Nublado
 Riesgo alto de granizo lun 16 17:00 h
 Sensación 21°
 Viento 18 km/h
-Ráfagas 35
+Ráfagas 34
 Humedad 65%
-Rayos: sin datos recientes
-Son de hace 56 min: no se puede confirmar si hay rayos cerca
+Sin rayos cerca
+Ninguno a menos de 50 km · hace 4 min
 Riesgo estimado · próximas 24 h
 Granizo
 Alto
@@ -367,11 +363,9 @@ Amarillo
 Informate
 Desde mar 17 00:00 h · hasta mar 17 05:59 h
 Detalle
-Avisos a muy corto plazo: no disponibles ahora. Actualizado hace 56 min · smn.gob.ar
+Sin avisos a muy corto plazo en tu zona. Actualizado hace 3 min · smn.gob.ar
 Por hora
 Ahora
-25%
-22 h
 20%
 23 h
 18%
@@ -417,7 +411,8 @@ Ahora
 82%
 20 h
 78%
-23°
+21 h
+73%
 22°
 21°
 21°
@@ -441,9 +436,11 @@ Ahora
 20°
 18°
 17°
+17°
 Barras azules: probabilidad de lluvia. Recuadro de color: horas con riesgo de granizo (amarillo bajo, naranja moderado, rojo alto).
 Próximos días
 Hoy
+🧊 Bajo
 51%
 14°
 28°
@@ -480,7 +477,7 @@ Sismos cercanos · últimos 7 días
 M 4.8 a 400 km
 hace 21 h
 ====================================================================== 
-# san-luis/merlo -32.34 -65.01 00:55:55
+# san-luis/merlo -32.34 -65.01 01:17:43
 --- PIEDRA LIBRE ---
 Granizo por provincia
 /
@@ -491,7 +488,7 @@ GRANIZO EN VIVO · MERLO, SAN LUIS
 ¿Cae piedra hoy en Merlo?
 Sin granizo a la vista. Nada indica granizo en las próximas horas. El SMN ya tiene una alerta por granizo para más adelante: el detalle, abajo.
 Para hoy los modelos no ven granizo en Merlo.
-Actualizado el domingo 15 de noviembre a las 21:55 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
+Actualizado el domingo 15 de noviembre a las 22:17 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
 ALERTAS DEL SMN
 Alerta naranja por tormentas con granizo
 Mañana de 12 a 24 h
@@ -514,14 +511,14 @@ Martes 17
 BAJO
 Riesgo bajo de granizo, más probable de las 0 a las 1 h, con el pico cerca de las 0 h. 1 de 3 modelos lo anticipan.
 PRÓXIMAS 24 HORAS
-21 h
-0 h
-3 h
-6 h
-9 h
-12 h
-15 h
-18 h
+22 h
+1 h
+4 h
+7 h
+10 h
+13 h
+16 h
+19 h
 Bajo
 Moderado
 Alto
@@ -560,12 +557,12 @@ Ubicación actual
 23°
 Nublado
 Riesgo moderado de granizo lun 16 20:00 h
-Sensación 26°
-Viento 3 km/h
-Ráfagas 9
-Humedad 78%
-Rayos: sin datos recientes
-Son de hace 56 min: no se puede confirmar si hay rayos cerca
+Sensación 25°
+Viento 4 km/h
+Ráfagas 12
+Humedad 80%
+Sin rayos cerca
+Ninguno a menos de 50 km · hace 4 min
 Riesgo estimado · próximas 24 h
 Granizo
 Moderado
@@ -588,11 +585,14 @@ Amarillo
 Informate
 Desde mar 17 00:00 h · hasta mar 17 05:59 h
 Detalle
-Avisos a muy corto plazo: no disponibles ahora. Actualizado hace 56 min · smn.gob.ar
+EN ZONAS VECINAS
+Tormentas
+Amarillo
+A 5 km
+Desde lun 16 06:00 h · hasta lun 16 11:59 h
+Sin avisos a muy corto plazo en tu zona. Actualizado hace 3 min · smn.gob.ar
 Por hora
 Ahora
-45%
-22 h
 35%
 23 h
 26%
@@ -638,7 +638,8 @@ Ahora
 86%
 20 h
 84%
-24°
+21 h
+80%
 23°
 22°
 22°
@@ -661,6 +662,7 @@ Ahora
 20°
 18°
 20°
+19°
 19°
 Barras azules: probabilidad de lluvia. Recuadro de color: horas con riesgo de granizo (amarillo bajo, naranja moderado, rojo alto).
 Próximos días
@@ -702,7 +704,7 @@ Sismos cercanos · últimos 7 días
 M 4.8 a 365 km
 hace 21 h
 ====================================================================== 
-# mendoza/ciudad-de-mendoza -32.89 -68.83 00:56:03
+# mendoza/ciudad-de-mendoza -32.89 -68.83 01:17:51
 --- PIEDRA LIBRE ---
 Granizo por provincia
 /
@@ -713,7 +715,7 @@ GRANIZO EN VIVO · MENDOZA CAPITAL, MENDOZA
 ¿Cae piedra hoy en Mendoza capital?
 Sin granizo a la vista. Nada indica granizo en las próximas horas. Las alertas del SMN de la zona, abajo.
 Para hoy los modelos no ven granizo en Mendoza capital.
-Actualizado el domingo 15 de noviembre a las 21:56 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
+Actualizado el domingo 15 de noviembre a las 22:17 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
 ALERTAS DEL SMN
 Alerta amarilla por tormentas con granizo
 Vigente, hasta las 24 h
@@ -737,24 +739,24 @@ SIN RIESGO
 Los modelos no muestran señales de granizo.
 Mañana
 BAJO
-Riesgo bajo de granizo, más probable de las 14 a las 18 h, con el pico cerca de las 16 h. 3 de 3 modelos lo anticipan.
+Riesgo bajo de granizo, más probable de las 15 a las 18 h, con el pico cerca de las 16 h. 3 de 3 modelos lo anticipan.
 Martes 17
 SIN RIESGO
 Los modelos no muestran señales de granizo.
 PRÓXIMAS 24 HORAS
-21 h
-0 h
-3 h
-6 h
-9 h
-12 h
-15 h
-18 h
+22 h
+1 h
+4 h
+7 h
+10 h
+13 h
+16 h
+19 h
 Bajo
 Moderado
 Alto
 Muy alto
-Pronóstico de Piedra Libre con tres modelos (GFS, ECMWF e ICON), calculado a las 20:06 h. Es una estimación: las alertas del SMN siempre van primero.
+Pronóstico de Piedra Libre con tres modelos (GFS, ECMWF e ICON), calculado a las 22:06 h. Es una estimación: las alertas del SMN siempre van primero.
 Que te avise antes de que caiga
 Guardá tu casa o tu campo en Ciudad de Mendoza. Piedra Libre te avisa cuando se acerca granizo y a qué hora llegaría la tormenta.
 Descargá la app gratis
@@ -785,26 +787,26 @@ Preguntas frecuentes
 ¿Va a caer piedra o granizo hoy en Mendoza capital?
 ¿A qué hora puede caer granizo hoy en Ciudad de Mendoza?
 ¿Cuándo cae granizo en Ciudad de Mendoza?
-¿Cómo me entero antes de que
+¿Cómo me entero antes de qu
 --- ATENTO CLIMA ---
 Departamento Guaymallén, Mendoza
 Ubicación actual
-26°
+25°
 Despejado
 Riesgo bajo de granizo lun 16 13:00 h
-Sensación 25°
-Viento 6 km/h
-Ráfagas 15
-Humedad 39%
-Rayos: sin datos recientes
-Son de hace 56 min: no se puede confirmar si hay rayos cerca
+Sensación 24°
+Viento 11 km/h
+Ráfagas 19
+Humedad 43%
+Sin rayos cerca
+Ninguno a menos de 50 km · hace 4 min
 Riesgo estimado · próximas 24 h
 Granizo
 Bajo
 lun 16 13:00 h
 Tormenta
-Bajo
-lun 16 13:00 h
+Moderado
+lun 16 21:00 h
 Viento
 Bajo
 lun 16 18:00 h
@@ -812,11 +814,26 @@ Estimación propia según el pronóstico y las alertas del SMN. No reemplaza los
 Alertas oficiales
 Servicio Meteorológico Nacional (SMN)
 Sin alertas vigentes para este lugar.
-Avisos a muy corto plazo: no disponibles ahora. Actualizado hace 56 min · smn.gob.ar
+EN ZONAS VECINAS
+Tormentas
+Amarillo
+A 7 km
+Vigente ahora · hasta hoy 23:59 h
+Tormentas
+Amarillo
+A 7 km
+Desde lun 16 06:00 h · hasta lun 16 11:59 h
+Tormentas
+Naranja
+A 7 km
+Desde lun 16 12:00 h · hasta lun 16 17:59 h
+Tormentas
+Amarillo
+A 7 km
+Desde lun 16 18:00 h · hasta mar 17 05:59 h
+Sin avisos a muy corto plazo en tu zona. Actualizado hace 3 min · smn.gob.ar
 Por hora
 Ahora
-2%
-22 h
 7%
 23 h
 14%
@@ -862,7 +879,8 @@ Ahora
 42%
 20 h
 41%
-26°
+21 h
+41%
 26°
 24°
 23°
@@ -885,6 +903,7 @@ Ahora
 25°
 23°
 18°
+17°
 17°
 Barras azules: probabilidad de lluvia. Recuadro de color: horas con riesgo de granizo (amarillo bajo, naranja moderado, rojo alto).
 Próximos días
@@ -924,7 +943,7 @@ hace 21 h
 M 4.2 a 323 km
 hace 5 d
 ====================================================================== 
-# mendoza/san-rafael -34.62 -68.33 00:56:11
+# mendoza/san-rafael -34.62 -68.33 01:18:03
 --- PIEDRA LIBRE ---
 Granizo por provincia
 /
@@ -935,7 +954,7 @@ GRANIZO EN VIVO · SAN RAFAEL, MENDOZA
 ¿Cae piedra hoy en San Rafael?
 Alerta amarilla por tormentas con granizo. Tormentas, algunas fuertes, con granizo, ráfagas y actividad eléctrica. Es para toda la región: te avisamos si se arma una tormenta cerca.
 Para hoy los modelos no ven granizo en San Rafael.
-Actualizado el domingo 15 de noviembre a las 21:56 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
+Actualizado el domingo 15 de noviembre a las 22:18 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
 ALERTAS DEL SMN
 Alerta amarilla por tormentas con granizo
 Vigente, hasta las 24 h
@@ -964,14 +983,14 @@ Martes 17
 BAJO
 Riesgo bajo de granizo, más probable de las 19 a las 24 h, con el pico cerca de las 23 h. 2 de 3 modelos lo anticipan.
 PRÓXIMAS 24 HORAS
-21 h
-0 h
-3 h
-6 h
-9 h
-12 h
-15 h
-18 h
+22 h
+1 h
+4 h
+7 h
+10 h
+13 h
+16 h
+19 h
 Bajo
 Moderado
 Alto
@@ -1007,15 +1026,15 @@ Toda la provincia de Mendoza
 --- ATENTO CLIMA ---
 Departamento San Rafael, Mendoza
 Ubicación actual
-23°
-Despejado
-Riesgo bajo de granizo lun 16 09:00 h
-Sensación 23°
-Viento 12 km/h
-Ráfagas 26
-Humedad 57%
-Rayos: sin datos recientes
-Son de hace 56 min: no se puede confirmar si hay rayos cerca
+22°
+Llovizna
+Riesgo moderado de granizo lun 16 12:00 h
+Sensación 22°
+Viento 11 km/h
+Ráfagas 23
+Humedad 62%
+Sin rayos cerca
+Ninguno a menos de 50 km · hace 4 min
 Riesgo estimado · próximas 24 h
 Granizo
 Moderado
@@ -1048,11 +1067,9 @@ Amarillo
 Informate
 Desde lun 16 18:00 h · hasta lun 16 23:59 h
 Detalle
-Avisos a muy corto plazo: no disponibles ahora. Actualizado hace 56 min · smn.gob.ar
+Sin avisos a muy corto plazo en tu zona. Actualizado hace 3 min · smn.gob.ar
 Por hora
 Ahora
-20%
-22 h
 30%
 23 h
 42%
@@ -1098,7 +1115,8 @@ Ahora
 82%
 20 h
 78%
-24°
+21 h
+76%
 23°
 21°
 18°
@@ -1122,14 +1140,16 @@ Ahora
 21°
 20°
 18°
+18°
 Barras azules: probabilidad de lluvia. Recuadro de color: horas con riesgo de granizo (amarillo bajo, naranja moderado, rojo alto).
 Próximos días
 Hoy
+🧊 Bajo
 42%
 16°
 29°
 Lun 16
-🧊 Bajo
+🧊 Moderado
 86%
 16°
 23°
@@ -1163,7 +1183,7 @@ hace 21 h
 M 4.2 a 394 km
 hace 5 d
 ====================================================================== 
-# mendoza/general-alvear -34.98 -67.7 00:56:18
+# mendoza/general-alvear -34.98 -67.7 01:18:11
 --- PIEDRA LIBRE ---
 Granizo por provincia
 /
@@ -1174,7 +1194,7 @@ GRANIZO EN VIVO · GENERAL ALVEAR, MENDOZA
 ¿Cae piedra hoy en General Alvear?
 Alerta amarilla por tormentas con granizo. Tormentas, algunas fuertes, con granizo, ráfagas y actividad eléctrica. Es para toda la región: te avisamos si se arma una tormenta cerca.
 Para hoy los modelos no ven granizo en General Alvear.
-Actualizado el domingo 15 de noviembre a las 21:56 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
+Actualizado el domingo 15 de noviembre a las 22:18 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
 ALERTAS DEL SMN
 Alerta amarilla por tormentas con granizo
 Vigente, hasta las 24 h
@@ -1203,14 +1223,14 @@ Martes 17
 SIN RIESGO
 Los modelos no muestran señales de granizo.
 PRÓXIMAS 24 HORAS
-21 h
-0 h
-3 h
-6 h
-9 h
-12 h
-15 h
-18 h
+22 h
+1 h
+4 h
+7 h
+10 h
+13 h
+16 h
+19 h
 Bajo
 Moderado
 Alto
@@ -1250,14 +1270,14 @@ Toda la provincia de Mendoza
 Departamento General Alvear, Mendoza
 Ubicación actual
 23°
-Despejado
-Riesgo bajo de granizo lun 16 00:00 h
+Llovizna
+Riesgo moderado de granizo lun 16 12:00 h
 Sensación 23°
-Viento 14 km/h
-Ráfagas 26
-Humedad 59%
-Rayos: sin datos recientes
-Son de hace 56 min: no se puede confirmar si hay rayos cerca
+Viento 10 km/h
+Ráfagas 24
+Humedad 63%
+Sin rayos cerca
+Ninguno a menos de 50 km · hace 4 min
 Riesgo estimado · próximas 24 h
 Granizo
 Moderado
@@ -1291,11 +1311,9 @@ Amarillo
 Informate
 Desde lun 16 18:00 h · hasta lun 16 23:59 h
 Detalle
-Avisos a muy corto plazo: no disponibles ahora. Actualizado hace 56 min · smn.gob.ar
+Sin avisos a muy corto plazo en tu zona. Actualizado hace 3 min · smn.gob.ar
 Por hora
 Ahora
-4%
-22 h
 15%
 23 h
 30%
@@ -1341,7 +1359,8 @@ Ahora
 81%
 20 h
 71%
-23°
+21 h
+63%
 23°
 21°
 19°
@@ -1365,14 +1384,16 @@ Ahora
 22°
 17°
 17°
+17°
 Barras azules: probabilidad de lluvia. Recuadro de color: horas con riesgo de granizo (amarillo bajo, naranja moderado, rojo alto).
 Próximos días
 Hoy
+🧊 Bajo
 35%
 16°
 28°
 Lun 16
-🧊 Bajo
+🧊 Moderado
 88%
 16°
 23°
@@ -1401,7 +1422,7 @@ Sáb 21
 Sismos cercanos · últimos 7 días
 Sin sismos de magnitud 2,5 o más a menos de 400 km.
 ====================================================================== 
-# cordoba/rio-cuarto -33.13 -64.35 00:56:26
+# cordoba/rio-cuarto -33.13 -64.35 01:18:19
 --- PIEDRA LIBRE ---
 Granizo por provincia
 /
@@ -1412,7 +1433,7 @@ GRANIZO EN VIVO · RÍO CUARTO, CÓRDOBA
 ¿Cae piedra hoy en Río Cuarto?
 Sin granizo a la vista. Nada indica granizo en las próximas horas. El SMN ya tiene una alerta por granizo para más adelante: el detalle, abajo.
 Para hoy los modelos no ven granizo en Río Cuarto.
-Actualizado el domingo 15 de noviembre a las 21:56 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
+Actualizado el domingo 15 de noviembre a las 22:18 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
 ALERTAS DEL SMN
 Alerta naranja por tormentas con granizo
 Mañana de 12 a 24 h
@@ -1435,14 +1456,14 @@ Martes 17
 SIN RIESGO
 Los modelos no muestran señales de granizo.
 PRÓXIMAS 24 HORAS
-21 h
-0 h
-3 h
-6 h
-9 h
-12 h
-15 h
-18 h
+22 h
+1 h
+4 h
+7 h
+10 h
+13 h
+16 h
+19 h
 Bajo
 Moderado
 Alto
@@ -1484,13 +1505,13 @@ Departamento Río Cuarto, Córdoba
 Ubicación actual
 21°
 Mayormente despejado
-Riesgo bajo de granizo lun 16 12:00 h
+Riesgo moderado de granizo lun 16 12:00 h
 Sensación 21°
 Viento 14 km/h
 Ráfagas 25
-Humedad 70%
-Rayos: sin datos recientes
-Son de hace 57 min: no se puede confirmar si hay rayos cerca
+Humedad 72%
+Sin rayos cerca
+Ninguno a menos de 50 km · hace 4 min
 Riesgo estimado · próximas 24 h
 Granizo
 Moderado
@@ -1513,11 +1534,9 @@ Amarillo
 Informate
 Desde mar 17 00:00 h · hasta mar 17 05:59 h
 Detalle
-Avisos a muy corto plazo: no disponibles ahora. Actualizado hace 56 min · smn.gob.ar
+Sin avisos a muy corto plazo en tu zona. Actualizado hace 3 min · smn.gob.ar
 Por hora
 Ahora
-12%
-22 h
 12%
 23 h
 13%
@@ -1563,7 +1582,8 @@ Ahora
 78%
 20 h
 77%
-22°
+21 h
+75%
 21°
 21°
 20°
@@ -1587,6 +1607,7 @@ Ahora
 21°
 20°
 20°
+18°
 Barras azules: probabilidad de lluvia. Recuadro de color: horas con riesgo de granizo (amarillo bajo, naranja moderado, rojo alto).
 Próximos días
 Hoy
@@ -1594,7 +1615,7 @@ Hoy
 13°
 27°
 Lun 16
-🧊 Bajo
+🧊 Moderado
 81%
 18°
 27°
@@ -1625,7 +1646,7 @@ Sáb 21
 Sismos cercanos · últimos 7 días
 Sin sismos de magnitud 2,5 o más a menos de 400 km.
 ====================================================================== 
-# cordoba/ciudad-de-cordoba -31.42 -64.18 00:56:33
+# cordoba/ciudad-de-cordoba -31.42 -64.18 01:18:27
 --- PIEDRA LIBRE ---
 Granizo por provincia
 /
@@ -1636,7 +1657,7 @@ GRANIZO EN VIVO · CÓRDOBA CAPITAL, CÓRDOBA
 ¿Cae piedra hoy en Córdoba capital?
 Sin granizo a la vista. Nada indica granizo en las próximas horas. El SMN ya tiene una alerta por granizo para más adelante: el detalle, abajo.
 Para hoy los modelos no ven granizo en Córdoba capital.
-Actualizado el domingo 15 de noviembre a las 21:56 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
+Actualizado el domingo 15 de noviembre a las 22:18 h · alertas del SMN, rayos del satélite GOES-19 y pronóstico de Piedra Libre
 ALERTAS DEL SMN
 Alerta naranja por tormentas con granizo
 Mañana de 18 a 24 h
@@ -1650,7 +1671,8 @@ Sobre Ciudad de Córdoba
 RAYOS, ÚLTIMOS 10 MINUTOS
 Sin tormentas eléctricas a menos de 40 km.
 REPORTES DE VECINOS, 3 H
-Nadie reportó granizo a menos de 30 km en las últimas 3 horas.
+Granizo tamaño garbanzo, a 16 km
+21:39 h · Sin confirmar
 Pronóstico de granizo en Córdoba capital
 Hoy
 SIN RIESGO
@@ -1662,14 +1684,14 @@ Martes 17
 MODERADO
 Riesgo moderado de granizo, más probable de las 0 a las 3 h, con el pico cerca de las 0 h. 3 de 3 modelos lo anticipan.
 PRÓXIMAS 24 HORAS
-21 h
-0 h
-3 h
-6 h
-9 h
-12 h
-15 h
-18 h
+22 h
+1 h
+4 h
+7 h
+10 h
+13 h
+16 h
+19 h
 Bajo
 Moderado
 Alto
@@ -1701,19 +1723,20 @@ Preguntas frecuentes
 Ciudades cercanas
 Malvinas Argentinas
 Los Cedros
-Bouw
+Bouwer
+Sa
 --- ATENTO CLIMA ---
 Departamento Capital, Córdoba
 Ubicación actual
 23°
 Nublado
-Riesgo bajo de granizo lun 16 13:00 h
+Riesgo moderado de granizo lun 16 18:00 h
 Sensación 25°
 Viento 8 km/h
-Ráfagas 13
-Humedad 72%
-Rayos: sin datos recientes
-Son de hace 57 min: no se puede confirmar si hay rayos cerca
+Ráfagas 15
+Humedad 73%
+Sin rayos cerca
+Ninguno a menos de 50 km · hace 2 min
 Riesgo estimado · próximas 24 h
 Granizo
 Moderado
@@ -1741,11 +1764,9 @@ Amarillo
 Informate
 Desde mar 17 00:00 h · hasta mar 17 05:59 h
 Detalle
-Avisos a muy corto plazo: no disponibles ahora. Actualizado hace 56 min · smn.gob.ar
+Sin avisos a muy corto plazo en tu zona. Actualizado hace 0 min · smn.gob.ar
 Por hora
 Ahora
-2%
-22 h
 3%
 23 h
 3%
@@ -1791,7 +1812,8 @@ Ahora
 78%
 20 h
 82%
-24°
+21 h
+84%
 23°
 22°
 22°
@@ -1815,6 +1837,7 @@ Ahora
 20°
 20°
 21°
+20°
 Barras azules: probabilidad de lluvia. Recuadro de color: horas con riesgo de granizo (amarillo bajo, naranja moderado, rojo alto).
 Próximos días
 Hoy
@@ -1822,7 +1845,7 @@ Hoy
 14°
 27°
 Lun 16
-🧊 Bajo
+🧊 Moderado
 85%
 19°
 28°
