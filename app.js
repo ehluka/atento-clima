@@ -306,6 +306,29 @@ function smnFor(data, lat, lon, prov) {
     return prov && norm(a.area).includes(norm(prov));
   });
 }
+// Distancia (km) del punto al borde más cercano del polígono
+function polyKm(lat, lon, poly) {
+  const kx = 111.32 * Math.cos(lat * Math.PI / 180), ky = 110.57;
+  let best = Infinity;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const ax = (poly[j][1] - lon) * kx, ay = (poly[j][0] - lat) * ky, bx = (poly[i][1] - lon) * kx, by = (poly[i][0] - lat) * ky;
+    const dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, -(ax * dx + ay * dy) / ((dx * dx + dy * dy) || 1)));
+    best = Math.min(best, Math.hypot(ax + t * dx, ay + t * dy));
+  }
+  return best;
+}
+// Alertas de zonas vecinas (a menos de maxKm) que no cubren el punto
+function smnNear(data, lat, lon, hits, maxKm = 20) {
+  const now = Date.now(), key = a => [a.event, a.level, a.onset, a.expires].join('|');
+  const have = new Set(hits.map(key)), out = new Map();
+  for (const a of data?.alerts || []) {
+    if (a.kind === 'acp' || !a.polygons?.length || (a.expires && Date.parse(a.expires) < now) || have.has(key(a))) continue;
+    if (a.polygons.some(p => inPoly(lat, lon, p))) continue;
+    const km = Math.min(...a.polygons.map(p => polyKm(lat, lon, p)));
+    if (km <= maxKm && (!out.has(key(a)) || km < out.get(key(a)).km)) out.set(key(a), { ...a, km });
+  }
+  return [...out.values()];
+}
 
 /* ---------- Sismos ---------- */
 function distKm(a, b, c, d) {
@@ -414,16 +437,29 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
     if (/granizo/.test(t + ' ' + norm(x.description))) keys.push('hail');
     for (const k of keys) if (lv > rk[k].lvl) rk[k] = { lvl: lv, at: new Date(Math.max(on, now)), smn: on <= now ? 'ahora' : 'luego' };
   }
+  // Las alertas con granizo también suben el gráfico por hora y los próximos días (así nada se contradice)
+  const off = offsetStr(f.utc_offset_seconds), dayHail = { ...a.dayHail };
+  for (const x of smn) {
+    if (isAdv(x) || !/granizo/.test(norm(x.event + ' ' + x.headline + ' ' + x.description))) continue;
+    const on = onT(x), ex = x.expires ? Date.parse(x.expires) : on + 24 * 3600e3, lv = x.level || 1;
+    a.hours.forEach(h => { if (h.t >= on && h.t < ex) h.hail = Math.max(h.hail, lv); });
+    f.daily.time.forEach(t => { const s = Date.parse(t + 'T00:00:00' + off); if (on < s + 864e5 && ex > s) dayHail[t] = Math.max(dayHail[t] || 0, lv); });
+  }
+  const near = smnErr ? [] : smnNear(smnData, coords.lat, coords.lon, hits)
+    .sort((p, q) => (onT(p) > now) - (onT(q) > now) || onT(p) - onT(q) || (q.level || 1) - (p.level || 1));
   const smnMax = smn.reduce((m, x) => isAdv(x) ? m : Math.max(m, x.level || 1), 0);
-  const top = Math.max(a.hail.lvl, a.storm.lvl, a.wind.lvl, smnMax, acp.length ? 3 : 0, rayLvl);
+  const top = Math.max(rk.hail.lvl, rk.storm.lvl, rk.wind.lvl, smnMax, acp.length ? 3 : 0, rayLvl);
   levels[place.id] = top; renderChips();
 
+  const near24 = near.filter(x => !isAdv(x) && onT(x) <= now + 24 * 3600e3), nearKm = near24.length ? Math.min(...near24.map(x => x.km)) : null;
+  const when = r =>r.smn === 'ahora' ? 'ahora' : fmtWhen(r.at);
   const head = acp.length ? 'Tormenta fuerte en curso en tu zona'
     : rayLvl ? `${ray.near ? 'Rayos ' + distTxt(ray.near) : 'Rayos cerca'}: riesgo ${LVL[rayLvl].toLowerCase()} de granizo`
-    : a.hail.lvl ? `Riesgo ${LVL[a.hail.lvl].toLowerCase()} de granizo ${fmtWhen(a.hail.at)}`
-    : a.storm.lvl ? `Riesgo ${LVL[a.storm.lvl].toLowerCase()} de tormenta ${fmtWhen(a.storm.at)}`
-    : a.wind.lvl ? `Ráfagas fuertes ${fmtWhen(a.wind.at)}`
-    : smnMax ? 'Alerta oficial vigente' : 'Sin riesgos a la vista en 24 h';
+    : rk.hail.lvl ? `Riesgo ${LVL[rk.hail.lvl].toLowerCase()} de granizo ${when(rk.hail)}`
+    : rk.storm.lvl ? `Riesgo ${LVL[rk.storm.lvl].toLowerCase()} de tormenta ${when(rk.storm)}`
+    : rk.wind.lvl ? `Ráfagas fuertes ${when(rk.wind)}`
+    : smnMax ? 'Alerta oficial vigente'
+    : nearKm != null ? `Sin riesgos aquí · alerta del SMN a ${Math.max(1, Math.round(nearKm))} km` : 'Sin riesgos a la vista en 24 h';
 
   let html = '';
   if (fromCache) html += `<div class="card muted">Sin conexión: mostrando datos guardados ${fmtAgo(fromCache)}.</div>`;
@@ -459,13 +495,19 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
   html += `<section class="card alert lvl-${smnMax}"><h3 class="h-sub">Alertas oficiales<small>Servicio Meteorológico Nacional (SMN)</small></h3>`;
   if (smnErr) html += `<p class="muted">No se pudieron leer las alertas del SMN. <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">Ver en smn.gob.ar</a></p>`;
   else {
+    const badge = x => isAdv(x) ? '<span class="badge b-adv">Advertencia</span>' : `<span class="badge b-${x.level || 1}">${SMN_LVL[x.level] || esc(x.severity)}</span>`;
+    const vig = x => (onT(x) <= now ? '<b class="' + (isAdv(x) ? 't-adv' : 't-' + (x.level || 1)) + '">Vigente ahora</b>' : 'Desde ' + fmtWhen(new Date(x.onset))) + (x.expires ? ' · hasta ' + fmtWhen(new Date(x.expires)) : '');
     if (!smn.length) html += `<p class="muted">Sin alertas vigentes para este lugar.</p>`;
     else html += `<ul class="list">${smn.map(x => `<li>
-      <div class="row"><b>${esc(x.event)}</b>${isAdv(x) ? '<span class="badge b-adv">Advertencia</span>' : `<span class="badge b-${x.level || 1}">${SMN_LVL[x.level] || esc(x.severity)}</span>`}</div>
+      <div class="row"><b>${esc(x.event)}</b>${badge(x)}</div>
       ${isAdv(x) ? '' : `<div class="small t-${x.level || 1}"><b>${(/temperatura|calor|frio/.test(norm(x.event)) ? SMN_HEALTH : SMN_DO)[x.level || 1]}</b></div>`}
-      <div class="muted">${onT(x) <= now ? '<b class="' + (isAdv(x) ? 't-adv' : 't-' + (x.level || 1)) + '">Vigente ahora</b>' : 'Desde ' + fmtWhen(new Date(x.onset))}${x.expires ? ' · hasta ' + fmtWhen(new Date(x.expires)) : ''}</div>
+      <div class="muted">${vig(x)}</div>
       ${x.description ? `<details><summary class="muted">Detalle</summary><p>${esc(x.description)}</p></details>` : ''}
     </li>`).join('')}</ul>`;
+    if (near.length) html += `<div class="near"><div class="near-h">En zonas vecinas</div><ul class="list">${near.map(x => `<li>
+      <div class="row"><b>${esc(x.event)}</b>${badge(x)}</div>
+      <div class="muted small">${x.km < 1 ? 'A menos de 1 km' : 'A ' + Math.round(x.km) + ' km'}${x.area ? ', ' + esc(x.area.slice(0, 60)) : ''}</div>
+      <div class="muted small">${vig(x)}</div></li>`).join('')}</ul></div>`;
     html += `<p class="muted small">${acp.length ? '' : acpStale ? 'Avisos a muy corto plazo: no disponibles ahora. ' : 'Sin avisos a muy corto plazo en tu zona. '}Actualizado ${fmtAgo(Date.parse(smnData.updated))} ·
       <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">smn.gob.ar</a></p>`;
   }
@@ -478,7 +520,7 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
   // Próximos días
   const D = f.daily, lo = Math.min(...D.temperature_2m_min), hi = Math.max(...D.temperature_2m_max), rng = (hi - lo) || 1;
   html += `<section class="card"><h3>Próximos días</h3><ul class="list days">${D.time.map((t, i) => {
-    const hl = a.dayHail[t] || 0, mn = D.temperature_2m_min[i], mx = D.temperature_2m_max[i];
+    const hl = dayHail[t] || 0, mn = D.temperature_2m_min[i], mx = D.temperature_2m_max[i];
     return `<li><span class="d-name"><span>${i === 0 ? 'Hoy' : fmtDay(new Date(t + 'T12:00'))}</span>${hl ? `<span class="badge d-hail b-${hl}">🧊 ${LVL[hl]}</span>` : ''}</span>${wxIcon(D.weather_code[i], 1, 34)}
       <span class="d-rain">${D.precipitation_probability_max[i] ?? 0}%</span>
       <span class="d-min">${Math.round(mn)}°</span>
@@ -582,6 +624,7 @@ applyTheme(false);
 
 /* ---------- Novedades (historial de versiones para el usuario) ---------- */
 const NEWS = [
+  ['1.14', '15/11/2026', ['El titular, el gráfico por hora y los próximos días ahora coinciden con las alertas del SMN que mencionan granizo.', 'Si hay una alerta del SMN en una zona vecina (a menos de 20 km), la app lo avisa.']],
   ['1.13', '14/11/2026', ['Cada alerta dice qué hacer según su color, como lo indica el SMN: Informate, Preparate o Seguí las instrucciones oficiales.', 'Las advertencias (niebla, ceniza, polvo, humo) se muestran en violeta.']],
   ['1.12', '14/11/2026', ['Las alertas del SMN muestran primero la que está vigente y después las próximas.', 'Las fichas de riesgo también tienen en cuenta las alertas oficiales del SMN.']],
   ['1.11', '13/11/2026', ['Nuevo: "Rayos cerca". Muestra si el satélite detecta rayos a tu alrededor y estima el riesgo de granizo en ese momento. Tocá la fila para ver el detalle.']],

@@ -163,3 +163,6 @@ html:not(.is-dark) .card svg path[d^="M18 44"]{stroke:#64748b;stroke-width:1.4}
 
 .b-adv{background:#7c3aed;color:#fff}
 .t-adv{color:#7c3aed}html.is-dark .t-adv{color:#c4b5fd}
+.near{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.near-h{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.near .badge{opacity:.8}
