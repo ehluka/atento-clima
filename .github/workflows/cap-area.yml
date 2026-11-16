@@ -1,0 +1,19 @@
+name: Diagnóstico zonas CAP
+on:
+  push:
+    branches: [prueba-rayos]
+    paths: ['prueba/cap_area.py', '.github/workflows/cap-area.yml']
+permissions:
+  contents: write
+jobs:
+  d:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 prueba/cap_area.py 2>&1 | tee prueba/cap_area.log
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add prueba/cap_area.log && git commit -m "Diagnóstico [skip ci]" || true
+          git push || true
