@@ -14,7 +14,7 @@ a{color:var(--accent)}
 .icon-btn.spin{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .places{display:flex;gap:8px;overflow-x:auto;padding:0 16px 10px;scrollbar-width:none}
-.chip{flex:none;border:0;background:var(--chip);color:var(--text);padding:8px 14px;border-radius:999px;font-size:.95rem;cursor:pointer;white-space:nowrap}
+.chip{flex:none;max-width:52vw;overflow:hidden;text-overflow:ellipsis;border:0;background:var(--chip);color:var(--text);padding:8px 14px;border-radius:999px;font-size:.95rem;cursor:pointer;white-space:nowrap}
 .chip.on{background:var(--accent);color:#fff}
 .chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:6px;vertical-align:middle}
 main{padding:0 16px 16px;max-width:720px;margin:0 auto}
@@ -89,7 +89,11 @@ details summary{cursor:pointer}
 .chart{display:block}
 .chart text{text-anchor:middle;font-size:12px;font-family:inherit}
 .c-muted{fill:var(--muted)}.c-rain{fill:var(--accent)}.c-temp{fill:var(--text);font-weight:700;font-size:13px!important}
-.days li{display:grid;grid-template-columns:6.2em 34px 2.6em 2.2em 1fr 2.2em;align-items:center;gap:6px}
+.days summary{display:grid;grid-template-columns:6.2em 34px 2.6em 2.2em 1fr 2.2em 10px;align-items:center;gap:6px;list-style:none;cursor:pointer}
+.days summary::-webkit-details-marker{display:none}
+.days .chev{color:var(--muted);transition:transform .2s;font-size:1.1rem}
+.days details[open] .chev{transform:rotate(90deg)}
+.d-txt{margin:8px 0 2px;padding:10px 12px;background:var(--panel);border-radius:10px;font-size:.92rem;line-height:1.45;color:var(--text)}
 .d-name{display:flex;flex-direction:column;line-height:1.25}
 .d-hail{font-size:.7rem;padding:1px 7px;margin-top:2px;align-self:flex-start;text-transform:none}
 .d-name{text-transform:capitalize}
@@ -166,3 +170,5 @@ html:not(.is-dark) .card svg path[d^="M18 44"]{stroke:#64748b;stroke-width:1.4}
 .near{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
 .near-h{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 .near .badge{opacity:.8}
+
+#addBtn{font-size:1.15rem;font-weight:700;padding:6px 14px}
