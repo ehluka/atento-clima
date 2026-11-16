@@ -122,6 +122,26 @@ async function placeName(lat, lon) {
   return out;
 }
 
+/* ---------- Nombre de una zona del SMN (el aviso no lo trae): departamento en el centro del polígono ---------- */
+const LS_ZONE = 'ac.zones';
+async function fillZones() {
+  const els = [...document.querySelectorAll('.zone[data-z]')], cache = ls.get(LS_ZONE, {});
+  for (const key of new Set(els.map(e => e.dataset.z))) {
+    let name = cache[key];
+    if (name === undefined) {
+      try {
+        const [lat, lon] = key.split(',');
+        const j = await (await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=es`)).json();
+        const adm = (j.localityInfo?.administrative || []).filter(a => a.adminLevel >= 5).sort((a, b) => a.adminLevel - b.adminLevel);
+        const dep = adm.find(a => /^(departamento|partido)\b/i.test(a.name)) || adm[0];
+        name = (dep?.name || j.locality || '').replace(/^(Departamento|Partido)( de)? /i, '');
+        cache[key] = name; ls.set(LS_ZONE, cache);
+      } catch { continue; }
+    }
+    if (name) els.filter(e => e.dataset.z === key).forEach(e => e.textContent = ', ' + name);
+  }
+}
+
 /* ---------- Datos ---------- */
 async function getJSON(url) {
   const r = await fetch(url, { cache: 'no-store' });
@@ -318,6 +338,28 @@ function polyKm(lat, lon, poly) {
   return best;
 }
 // Alertas de zonas vecinas (a menos de maxKm) que no cubren el punto
+// Punto de la zona más cercano al lugar, un poco hacia adentro: ahí se busca el nombre del departamento
+function zoneTag(x) {
+  const [lat, lon] = x.ctr, kx = 111.32 * Math.cos(lat * Math.PI / 180), ky = 110.57;
+  const poly = x.polygons.reduce((m, p) => polyKm(lat, lon, p) < polyKm(lat, lon, m) ? p : m);
+  let best = null;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const ax = (poly[j][1] - lon) * kx, ay = (poly[j][0] - lat) * ky, dx = (poly[i][1] - poly[j][1]) * kx, dy = (poly[i][0] - poly[j][0]) * ky;
+    const t = Math.max(0, Math.min(1, -(ax * dx + ay * dy) / ((dx * dx + dy * dy) || 1))), px = ax + t * dx, py = ay + t * dy, d = Math.hypot(px, py);
+    if (!best || d < best.d) best = { d, px, py };
+  }
+  let pt = null;
+  for (const r of [5, 8, 3]) {
+    for (let k = 0; k < 16 && best; k++) {
+      const ang = k * Math.PI / 8, q = [lat + (best.py + r * Math.sin(ang)) / ky, lon + (best.px + r * Math.cos(ang)) / kx];
+      if (inPoly(q[0], q[1], poly) && (!pt || Math.hypot((q[0] - lat) * ky, (q[1] - lon) * kx) < pt.d)) pt = Object.assign(q, { d: Math.hypot((q[0] - lat) * ky, (q[1] - lon) * kx) });
+    }
+    if (pt) break;
+  }
+  if (!pt) return '';
+  const key = pt[0].toFixed(2) + ',' + pt[1].toFixed(2), n = ls.get(LS_ZONE, {})[key];
+  return `<span class="zone" data-z="${key}">${n ? ', ' + esc(n) : ''}</span>`;
+}
 function smnNear(data, lat, lon, hits, maxKm = 20) {
   const now = Date.now(), key = a => [a.event, a.level, a.onset, a.expires].join('|');
   const have = new Set(hits.map(key)), out = new Map();
@@ -325,7 +367,7 @@ function smnNear(data, lat, lon, hits, maxKm = 20) {
     if (a.kind === 'acp' || !a.polygons?.length || (a.expires && Date.parse(a.expires) < now) || have.has(key(a))) continue;
     if (a.polygons.some(p => inPoly(lat, lon, p))) continue;
     const km = Math.min(...a.polygons.map(p => polyKm(lat, lon, p)));
-    if (km <= maxKm && (!out.has(key(a)) || km < out.get(key(a)).km)) out.set(key(a), { ...a, km });
+    if (km <= maxKm && (!out.has(key(a)) || km < out.get(key(a)).km)) out.set(key(a), { ...a, km, ctr: [lat, lon] });
   }
   return [...out.values()];
 }
@@ -506,7 +548,7 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
     </li>`).join('')}</ul>`;
     if (near.length) html += `<div class="near"><div class="near-h">En zonas vecinas</div><ul class="list">${near.map(x => `<li>
       <div class="row"><b>${esc(x.event)}</b>${badge(x)}</div>
-      <div class="muted small">${x.km < 1 ? 'A menos de 1 km' : 'A ' + Math.round(x.km) + ' km'}${x.area ? ', ' + esc(x.area.slice(0, 60)) : ''}</div>
+      <div class="muted small">${x.km < 1 ? 'A menos de 1 km' : 'A ' + Math.round(x.km) + ' km'}${x.area ? ', ' + esc(x.area.slice(0, 60)) : zoneTag(x)}</div>
       <div class="muted small">${vig(x)}</div></li>`).join('')}</ul></div>`;
     html += `<p class="muted small">${acp.length ? '' : acpStale ? 'Avisos a muy corto plazo: no disponibles ahora. ' : 'Sin avisos a muy corto plazo en tu zona. '}Actualizado ${fmtAgo(Date.parse(smnData.updated))} ·
       <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">smn.gob.ar</a></p>`;
@@ -545,6 +587,7 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
   if (!place.gps) html += `<p class="center"><button class="btn ghost small" id="rmPlace">Quitar “${esc(place.name)}”</button></p>`;
 
   $('#main').innerHTML = html;
+  fillZones();
   const rm = $('#rmPlace'); if (rm) rm.onclick = () => removePlace(place.id);
 }
 
@@ -624,7 +667,7 @@ applyTheme(false);
 
 /* ---------- Novedades (historial de versiones para el usuario) ---------- */
 const NEWS = [
-  ['1.14', '15/11/2026', ['El titular, el gráfico por hora y los próximos días ahora coinciden con las alertas del SMN que mencionan granizo.', 'Si hay una alerta del SMN en una zona vecina (a menos de 20 km), la app lo avisa.']],
+  ['1.14', '15/11/2026', ['El titular, el gráfico por hora y los próximos días ahora coinciden con las alertas del SMN que mencionan granizo.', 'Si hay una alerta del SMN en una zona vecina (a menos de 20 km), la app lo avisa con la distancia y el departamento.']],
   ['1.13', '14/11/2026', ['Cada alerta dice qué hacer según su color, como lo indica el SMN: Informate, Preparate o Seguí las instrucciones oficiales.', 'Las advertencias (niebla, ceniza, polvo, humo) se muestran en violeta.']],
   ['1.12', '14/11/2026', ['Las alertas del SMN muestran primero la que está vigente y después las próximas.', 'Las fichas de riesgo también tienen en cuenta las alertas oficiales del SMN.']],
   ['1.11', '13/11/2026', ['Nuevo: "Rayos cerca". Muestra si el satélite detecta rayos a tu alrededor y estima el riesgo de granizo en ese momento. Tocá la fila para ver el detalle.']],

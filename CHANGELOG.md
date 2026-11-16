@@ -2,6 +2,9 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.14.1 — 15/11/2026
+- Zonas vecinas con nombre: el aviso del SMN no trae el nombre de la zona, así que la app busca el departamento en la parte de la zona más cercana al lugar (5 km hacia adentro del borde) con el mismo servicio de nombres que usa para el GPS, y lo guarda para no repetir consultas. Ej. Ciudad de Mendoza: "A 7 km, Las Heras".
+
 ## v1.14 — 15/11/2026
 - Comparada con Piedra Libre en 8 ciudades: las alertas del SMN coincidían, pero el titular y "Próximos días" seguían solo el pronóstico y contradecían la ficha de granizo (ej. San Rafael: titular "bajo", ficha "moderado"). Ahora el titular, el gráfico por hora y los próximos días suben con las alertas del SMN que mencionan granizo, igual que las fichas.
 - Alertas en zonas vecinas: si una alerta del SMN no cubre el lugar pero su zona está a menos de 20 km, se lista aparte ("En zonas vecinas", con distancia y zona) y el titular lo menciona. No sube el nivel de riesgo.
