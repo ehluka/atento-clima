@@ -34,15 +34,15 @@ const levels = {}; // id -> max level, para el puntito del chip
 
 /* ---------- Lugares ---------- */
 let gpsName = ls.get(LS_GEO, {});
-function allPlaces() { return [{ id: 'gps', name: '📍 ' + (gpsName.name || 'Mi ubicación'), gps: true, prov: gpsName.prov || '' }, ...places]; }
+function allPlaces() { return [{ id: 'gps', name: '📍 ' + ((gpsName.name || '').replace(/^(Departamento|Partido)( de)? /i, '') || 'Mi ubicación'), gps: true, prov: gpsName.prov || '' }, ...places]; }
 
 function renderChips() {
   const nav = $('#places');
-  nav.innerHTML = allPlaces().map(p => {
+  nav.innerHTML = `<button class="chip" id="addBtn" aria-label="Agregar lugar" title="Agregar lugar">＋</button>` + allPlaces().map(p => {
     const l = levels[p.id];
     const dot = l == null ? '' : `<span class="dot" style="background:var(${['--ok', '--low', '--mid', '--high'][l]})"></span>`;
     return `<button class="chip ${p.id === selected ? 'on' : ''}" data-id="${esc(p.id)}">${esc(p.name)}${dot}</button>`;
-  }).join('') + `<button class="chip" id="addBtn" aria-label="Agregar lugar">＋ Lugar</button>`;
+  }).join('');
   nav.querySelectorAll('[data-id]').forEach(b => b.onclick = () => select(b.dataset.id));
   $('#addBtn').onclick = openAdd;
 }
@@ -111,11 +111,11 @@ function getGPS() {
 /* ---------- Nombre del lugar por GPS ---------- */
 async function placeName(lat, lon) {
   const key = lat.toFixed(2) + ',' + lon.toFixed(2), c = ls.get(LS_GEO, {});
-  if (c.key === key) return c;
+  if (c.key === key) return { ...c, name: (c.name || '').replace(/^(Departamento|Partido)( de)? /i, '') };
   const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=es`);
   const j = await r.json();
   const adm = (j.localityInfo?.administrative || []).filter(a => a.adminLevel >= 5).sort((a, b) => b.adminLevel - a.adminLevel);
-  const name = j.city || j.locality || adm[0]?.name || '';
+  const name = (j.city || j.locality || adm[0]?.name || '').replace(/^(Departamento|Partido)( de)? /i, '');
   const prov = (j.principalSubdivision || '').replace(/^Provincia de /i, '');
   const out = { key, name, prov };
   if (name) ls.set(LS_GEO, out);
@@ -138,7 +138,7 @@ async function fillZones() {
         cache[key] = name; ls.set(LS_ZONE, cache);
       } catch { continue; }
     }
-    if (name) els.filter(e => e.dataset.z === key).forEach(e => e.textContent = ', ' + name);
+    if (name) els.filter(e => e.dataset.z === key && e.dataset.self !== norm(name)).forEach(e => e.textContent = ', ' + name);
   }
 }
 
@@ -173,7 +173,11 @@ async function getSMN() {
 let rayCache = null;
 async function getRayos() {
   if (rayCache && Date.now() - rayCache.t < 60e3) return rayCache.d;
-  const d = await getJSON('data/rayos.json?t=' + Date.now());
+  // Copia cada 5 min (rama "datos") y la del sitio: se usa la más nueva
+  const [a, b] = await Promise.allSettled([getJSON('https://raw.githubusercontent.com/ehluka/atento-clima/datos/rayos.json?t=' + Math.floor(Date.now() / 6e4)), getJSON('data/rayos.json?t=' + Date.now())]);
+  const ok = [a, b].filter(x => x.status === 'fulfilled' && x.value?.t0).map(x => x.value);
+  if (!ok.length) throw new Error('sin datos de rayos');
+  const d = ok.reduce((m, x) => x.t0 > m.t0 ? x : m);
   rayCache = { t: Date.now(), d };
   return d;
 }
@@ -284,6 +288,21 @@ function stormLevel(x) {
 }
 const windLevel = g => g >= 90 ? 3 : g >= 70 ? 2 : g >= 50 ? 1 : 0;
 
+// Comentario breve de un día (al tocarlo en "Próximos días")
+function dayText(hs, D, i, hailMax) {
+  if (!hs.length) return WMO[D.weather_code[i]] || '';
+  const span = xs => { const a = xs[0].t.getHours(), b = xs[xs.length - 1].t.getHours() + 1; return xs.length >= 18 ? 'todo el día' : a === b - 1 ? `a las ${a} h` : a === 0 ? `hasta las ${b} h` : b === 24 ? `desde las ${a} h` : `de ${a} a ${b} h`; };
+  const out = [], hl = hs.filter(h => h.hail > 0), st = hs.filter(h => stormLevel(h) > 0), wet = hs.filter(h => (h.pp ?? 0) >= 40);
+  if (hl.length || hailMax) out.push(`Granizo ${LVL[Math.max(hailMax, ...hl.map(h => h.hail))].toLowerCase()}${hl.length ? ' ' + span(hl) : ''}`);
+  if (st.length) out.push(`${out.length ? 'tormentas' : 'Tormentas'} ${span(st)}`);
+  else if (wet.length) out.push(`${out.length ? 'lluvia' : 'Lluvia'} ${span(wet)}`);
+  if (!out.length) out.push('Sin lluvias');
+  const g = Math.max(...hs.map(h => h.gust ?? 0));
+  if (g >= 40) out.push(`ráfagas de ${Math.round(g)} km/h`);
+  else if (!wet.length && (D.uv_index_max?.[i] ?? 0) >= 8) out.push('UV muy alto');
+  return out.join(' · ') + '.';
+}
+
 function analyze(f) {
   const H = f.hourly, now = Date.now(), off = offsetStr(f.utc_offset_seconds);
   const all = H.time.map((t, i) => ({
@@ -301,7 +320,7 @@ function analyze(f) {
     hours.forEach(h => { const l = fn(h); if (l > best.lvl) best = { lvl: l, at: h.t }; });
     return best;
   };
-  return { hours, dayHail, hail: risk(h => h.hail), storm: risk(stormLevel), wind: risk(h => windLevel(h.gust ?? 0)) };
+  return { all, hours, dayHail, hail: risk(h => h.hail), storm: risk(stormLevel), wind: risk(h => windLevel(h.gust ?? 0)) };
 }
 function offsetStr(s) {
   const sign = s < 0 ? '-' : '+', a = Math.abs(s);
@@ -339,7 +358,7 @@ function polyKm(lat, lon, poly) {
 }
 // Alertas de zonas vecinas (a menos de maxKm) que no cubren el punto
 // Punto de la zona más cercano al lugar, un poco hacia adentro: ahí se busca el nombre del departamento
-function zoneTag(x) {
+function zoneTag(x, self) {
   const [lat, lon] = x.ctr, kx = 111.32 * Math.cos(lat * Math.PI / 180), ky = 110.57;
   const poly = x.polygons.reduce((m, p) => polyKm(lat, lon, p) < polyKm(lat, lon, m) ? p : m);
   let best = null;
@@ -358,7 +377,8 @@ function zoneTag(x) {
   }
   if (!pt) return '';
   const key = pt[0].toFixed(2) + ',' + pt[1].toFixed(2), n = ls.get(LS_ZONE, {})[key];
-  return `<span class="zone" data-z="${key}">${n ? ', ' + esc(n) : ''}</span>`;
+  const dir = ' al ' + DIRS[Math.round((Math.atan2(best.px, best.py) * 180 / Math.PI + 360) % 360 / 45) % 8];
+  return `${dir}<span class="zone" data-z="${key}" data-self="${esc(norm(self || ''))}">${n && norm(n) !== norm(self || '') ? ', ' + esc(n) : ''}</span>`;
 }
 function smnNear(data, lat, lon, hits, maxKm = 20) {
   const now = Date.now(), key = a => [a.event, a.level, a.onset, a.expires].join('|');
@@ -548,7 +568,7 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
     </li>`).join('')}</ul>`;
     if (near.length) html += `<div class="near"><div class="near-h">En zonas vecinas</div><ul class="list">${near.map(x => `<li>
       <div class="row"><b>${esc(x.event)}</b>${badge(x)}</div>
-      <div class="muted small">${x.km < 1 ? 'A menos de 1 km' : 'A ' + Math.round(x.km) + ' km'}${x.area ? ', ' + esc(x.area.slice(0, 60)) : zoneTag(x)}</div>
+      <div class="muted small">${x.km < 1 ? 'A menos de 1 km' : 'A ' + Math.round(x.km) + ' km'}${x.area ? ', ' + esc(x.area.slice(0, 60)) : zoneTag(x, place.gps ? (gpsName.name || '').replace(/^(Departamento|Partido)( de)? /i, '') : place.name)}</div>
       <div class="muted small">${vig(x)}</div></li>`).join('')}</ul></div>`;
     html += `<p class="muted small">${acp.length ? '' : acpStale ? 'Avisos a muy corto plazo: no disponibles ahora. ' : 'Sin avisos a muy corto plazo en tu zona. '}Actualizado ${fmtAgo(Date.parse(smnData.updated))} ·
       <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">smn.gob.ar</a></p>`;
@@ -563,12 +583,13 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
   const D = f.daily, lo = Math.min(...D.temperature_2m_min), hi = Math.max(...D.temperature_2m_max), rng = (hi - lo) || 1;
   html += `<section class="card"><h3>Próximos días</h3><ul class="list days">${D.time.map((t, i) => {
     const hl = dayHail[t] || 0, mn = D.temperature_2m_min[i], mx = D.temperature_2m_max[i];
-    return `<li><span class="d-name"><span>${i === 0 ? 'Hoy' : fmtDay(new Date(t + 'T12:00'))}</span>${hl ? `<span class="badge d-hail b-${hl}">🧊 ${LVL[hl]}</span>` : ''}</span>${wxIcon(D.weather_code[i], 1, 34)}
+    return `<li><details><summary><span class="d-name"><span>${i === 0 ? 'Hoy' : fmtDay(new Date(t + 'T12:00'))}</span>${hl ? `<span class="badge d-hail b-${hl}">🧊 ${LVL[hl]}</span>` : ''}</span>${wxIcon(D.weather_code[i], 1, 34)}
       <span class="d-rain">${D.precipitation_probability_max[i] ?? 0}%</span>
       <span class="d-min">${Math.round(mn)}°</span>
       <span class="d-bar"><i style="left:${((mn - lo) / rng * 100).toFixed(0)}%;width:${Math.max(6, (mx - mn) / rng * 100).toFixed(0)}%"></i></span>
-      <b class="d-max">${Math.round(mx)}°</b></li>`; }).join('')}</ul>
-    <p class="muted small">% de lluvia · 🧊 riesgo estimado de granizo ese día.</p></section>`;
+      <b class="d-max">${Math.round(mx)}°</b><span class="chev">›</span></summary>
+      <p class="d-txt">${dayText(a.all.filter(h => h.date === t), D, i, hl)}</p></details></li>`; }).join('')}</ul>
+    <p class="muted small">% de lluvia · 🧊 riesgo estimado de granizo ese día · tocá un día para ver el detalle.</p></section>`;
 
   // Sismos
   html += `<section class="card"><h3>Sismos cercanos · últimos 7 días</h3>`;
@@ -594,7 +615,7 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
 function showMsg(msg, retry) {
   $('#main').innerHTML = `<div class="card center"><p>${esc(msg)}</p>
     ${retry ? '<p><button class="btn" id="retry">Reintentar</button></p>' : ''}
-    <p class="muted">También podés agregar un lugar a mano con “＋ Lugar”.</p></div>`;
+    <p class="muted">También podés agregar un lugar a mano con el botón “＋” de arriba.</p></div>`;
   const b = $('#retry'); if (b) b.onclick = load;
 }
 
@@ -667,6 +688,7 @@ applyTheme(false);
 
 /* ---------- Novedades (historial de versiones para el usuario) ---------- */
 const NEWS = [
+  ['1.15', '16/11/2026', ['Rayos más al día: se actualizan cada 5 minutos.', 'Tocá un día en “Próximos días” para ver un resumen: lluvia, tormentas, granizo, viento y UV.', 'Los nombres largos de lugar se acortan y el botón “＋” para agregar lugares queda siempre a la vista.', 'Las alertas de zonas vecinas indican también la dirección.']],
   ['1.14', '15/11/2026', ['El titular, el gráfico por hora y los próximos días ahora coinciden con las alertas del SMN que mencionan granizo.', 'Si hay una alerta del SMN en una zona vecina (a menos de 20 km), la app lo avisa con la distancia y el departamento.']],
   ['1.13', '14/11/2026', ['Cada alerta dice qué hacer según su color, como lo indica el SMN: Informate, Preparate o Seguí las instrucciones oficiales.', 'Las advertencias (niebla, ceniza, polvo, humo) se muestran en violeta.']],
   ['1.12', '14/11/2026', ['Las alertas del SMN muestran primero la que está vigente y después las próximas.', 'Las fichas de riesgo también tienen en cuenta las alertas oficiales del SMN.']],

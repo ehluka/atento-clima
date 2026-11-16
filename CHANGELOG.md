@@ -2,6 +2,12 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.15 — 16/11/2026
+- Rayos cada 5 min: el cron de GitHub se atrasaba hasta casi 3 h (la app mostraba "sin datos recientes, hace 147 min"). Nuevo workflow `rayos-continuo.yml`: queda corriendo ~5,5 h y publica `rayos.json` cada 5 min en la rama `datos` (un solo commit que se reemplaza); el cron horario solo lo relanza. La app lee esa copia (raw.githubusercontent.com) y la del sitio, y usa la más nueva.
+- "Próximos días" desplegable: al tocar un día se ve un resumen armado con el pronóstico por hora (cielo, mín/máx, lluvia y franja horaria, tormentas, granizo, ráfagas, UV).
+- Lugares: se saca "Departamento" del nombre del GPS, los chips se cortan con "…" y el botón "＋" pasa al principio (en Android quedaba fuera de pantalla).
+- Zonas vecinas: se agrega la dirección ("A 6 km al noreste, Las Heras") y no se repite el nombre si es el mismo departamento del lugar.
+
 ## v1.14.1 — 15/11/2026
 - Zonas vecinas con nombre: el aviso del SMN no trae el nombre de la zona, así que la app busca el departamento en la parte de la zona más cercana al lugar (5 km hacia adentro del borde) con el mismo servicio de nombres que usa para el GPS, y lo guarda para no repetir consultas. Ej. Ciudad de Mendoza: "A 7 km, Las Heras".
 
