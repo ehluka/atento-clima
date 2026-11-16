@@ -7,7 +7,7 @@ for f in ('alerts.json', 'rayos.json'):
 srv = subprocess.Popen(['python3', '-m', 'http.server', '8765', '-d', 'prueba/site'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); time.sleep(1)
 with sync_playwright() as p:
     b = p.chromium.launch()
-    for name, lat, lon in [('mendoza', -32.89, -68.83), ('san_luis', -33.30, -66.34), ('lujan', -33.04, -68.88), ('alvear', -34.98, -67.70)]:
+    for name, lat, lon in [('mendoza', -32.89, -68.83), ('san_luis', -33.30, -66.34), ('lujan', -33.04, -68.88), ('maipu', -32.98, -68.79), ('godoy_cruz', -32.93, -68.85)]:
         ctx = b.new_context(geolocation=dict(latitude=lat, longitude=lon), permissions=['geolocation'], locale='es-AR', timezone_id='America/Argentina/Buenos_Aires', viewport=dict(width=390, height=844), device_scale_factor=2, service_workers='block')
         pg = ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))

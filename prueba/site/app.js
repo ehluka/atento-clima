@@ -348,10 +348,27 @@ function polyKm(lat, lon, poly) {
   return best;
 }
 // Alertas de zonas vecinas (a menos de maxKm) que no cubren el punto
+// Punto de la zona más cercano al lugar, un poco hacia adentro: ahí se busca el nombre del departamento
 function zoneTag(x) {
-  const c = polyCenter(x.polygons.reduce((m, p) => polyKm(...(x.ctr || [0, 0]), p) < polyKm(...(x.ctr || [0, 0]), m) ? p : m));
-  if (!c) return '';
-  const key = c[0].toFixed(2) + ',' + c[1].toFixed(2), n = ls.get(LS_ZONE, {})[key];
+  const [lat, lon] = x.ctr, kx = 111.32 * Math.cos(lat * Math.PI / 180), ky = 110.57;
+  const poly = x.polygons.reduce((m, p) => polyKm(lat, lon, p) < polyKm(lat, lon, m) ? p : m);
+  let best = null;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const ax = (poly[j][1] - lon) * kx, ay = (poly[j][0] - lat) * ky, dx = (poly[i][1] - poly[j][1]) * kx, dy = (poly[i][0] - poly[j][0]) * ky;
+    const t = Math.max(0, Math.min(1, -(ax * dx + ay * dy) / ((dx * dx + dy * dy) || 1))), px = ax + t * dx, py = ay + t * dy, d = Math.hypot(px, py);
+    if (!best || d < best.d) best = { d, px, py };
+  }
+  const c = polyCenter(poly);
+  let pt = null;
+  if (best && c) {
+    const cx = (c[1] - lon) * kx, cy = (c[0] - lat) * ky, L = Math.hypot(cx - best.px, cy - best.py) || 1;
+    for (const km of [3, 1.5, 6, 10]) {
+      const f = Math.min(km / L, 1), q = [lat + (best.py + (cy - best.py) * f) / ky, lon + (best.px + (cx - best.px) * f) / kx];
+      if (inPoly(q[0], q[1], poly)) { pt = q; break; }
+    }
+  }
+  if (!pt) return '';
+  const key = pt[0].toFixed(2) + ',' + pt[1].toFixed(2), n = ls.get(LS_ZONE, {})[key];
   return `<span class="zone" data-z="${key}">${n ? ', ' + esc(n) : ''}</span>`;
 }
 function smnNear(data, lat, lon, hits, maxKm = 20) {
