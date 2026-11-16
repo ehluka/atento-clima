@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atento Clima</title>
+<meta name="description" content="Alertas de granizo, tormentas, SMN, sismos y pronóstico según tu ubicación. Gratis.">
+<meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111315" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+<script>try{var t=JSON.parse(localStorage.getItem("ac.theme"));if(t)document.documentElement.dataset.theme=t;var d=t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("is-dark",d)}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img src="icons/icon.svg" alt="" width="28" height="28"><span>Atento Clima</span></div>
+  <div class="top-btns">
+    <button id="theme" class="icon-btn theme-btn" aria-label="Tema"></button>
+    <button id="refresh" class="icon-btn" aria-label="Actualizar">⟳</button>
+  </div>
+</header>
+
+<div id="install" class="install" hidden></div>
+
+<nav id="places" class="places" aria-label="Lugares"></nav>
+
+<main id="main">
+  <p class="muted center" id="status">Cargando…</p>
+</main>
+
+<dialog id="addDlg">
+  <form method="dialog" id="addForm">
+    <h2>Agregar lugar</h2>
+    <label>Buscar ciudad o localidad
+      <input id="q" type="search" placeholder="Ej: Villa Mercedes" autocomplete="off" required>
+    </label>
+    <ul id="results" class="results"></ul>
+    <label>Nombre para mostrar (opcional)
+      <input id="alias" type="text" placeholder="Ej: Casa, Campo">
+    </label>
+    <div class="row end">
+      <button value="cancel" type="button" id="cancelAdd" class="btn ghost">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<footer class="foot muted">
+  Datos: Open-Meteo · SMN · NOAA (GOES-19) · USGS<br>
+  Atento Clima v1.14 · <button class="linkbtn" id="newsBtn">Novedades</button>
+</footer>
+
+<dialog id="newsDlg" class="news">
+  <div class="row"><h2>Novedades</h2><button class="icon-btn x" id="newsClose" aria-label="Cerrar">✕</button></div>
+  <div id="newsList"></div>
+</dialog>
+
+<div id="toast" class="toast" role="status"></div>
+<script src="app.js"></script>
+<!-- Contador de visitas privado (GoatCounter: sin cookies ni datos personales) -->
+<script data-goatcounter="https://ehluka.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
