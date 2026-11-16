@@ -12,7 +12,10 @@ with sync_playwright() as p:
         ctx.add_init_script("localStorage.setItem('ac.places', JSON.stringify([{id:'sl',name:'Villa Mercedes',lat:-33.68,lon:-65.46,prov:'San Luis'}]))")
         pg = ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e))); pg.on('console', lambda m: m.type == 'error' and errs.append(m.text))
-        pg.goto('http://localhost:8765/'); pg.wait_for_selector('.hero', timeout=40000); pg.wait_for_timeout(4000)
+        pg.goto('http://localhost:8765/')
+        try: pg.wait_for_selector('.hero', timeout=30000)
+        except Exception: print('SIN HERO', errs, pg.inner_text('body')[:600]); ctx.close(); continue
+        pg.wait_for_timeout(4000)
         al = pg.locator('section.card.alert')
         zs = pg.eval_on_selector_all('.zone', 'es => es.map(e => e.dataset.z + "=" + e.textContent)'); print('  zonas:', zs, pg.evaluate('localStorage.getItem("ac.zones")'))
         print(f'[{name}] titular: {pg.inner_text(".hero-head")!r}\n  alertas: {al.inner_text().replace(chr(10), " | ")[:700]}\n  errores: {errs}')
