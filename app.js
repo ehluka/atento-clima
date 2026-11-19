@@ -174,7 +174,7 @@ let rayCache = null;
 async function getRayos() {
   if (rayCache && Date.now() - rayCache.t < 60e3) return rayCache.d;
   // Copia cada 5 min (rama "datos") y la del sitio: se usa la más nueva
-  const [a, b] = await Promise.allSettled([getJSON('https://raw.githubusercontent.com/ehluka/atento-clima/datos/rayos.json?t=' + Math.floor(Date.now() / 6e4)), getJSON('data/rayos.json?t=' + Date.now())]);
+  const [a, b] = await Promise.allSettled([getJSON('https://raw.githubusercontent.com/ehluka/atento-clima/datos/rayos.json?t=' + Date.now()), getJSON('data/rayos.json?t=' + Date.now())]);
   const ok = [a, b].filter(x => x.status === 'fulfilled' && x.value?.t0).map(x => x.value);
   if (!ok.length) throw new Error('sin datos de rayos');
   const d = ok.reduce((m, x) => x.t0 > m.t0 ? x : m);
@@ -189,13 +189,14 @@ const RAY_LVL = n => n >= 80 ? 3 : n >= 20 ? 2 : n >= 5 ? 1 : 0;
 function rayosNear(d, lat, lon) {
   const age = Math.max(0, Math.round(Date.now() / 60e3 - d.t0));
   const cosl = Math.cos(lat * Math.PI / 180), perMin = new Array(40).fill(0), pts = [];
-  let n10 = 0, a = 0, b = 0, near = null, near5 = null;
+  let n10 = 0, n5 = 0, a = 0, b = 0, near = null, near5 = null;
   for (const [la, lo, ago, n] of d.f || []) {
     if (ago >= 40) continue;
     const y = (la / 100 - lat) * 111.2, x = (lo / 100 - lon) * 111.2 * cosl, km = Math.hypot(x, y);
     if (km > 50) continue;
     if (ago < 30) pts.push({ x, y, km, ago, n });
     if (km <= 10 && ago < 30) n10 += n;
+    if (km <= 20 && ago < 5) n5 += n;
     if (km <= 20) { perMin[39 - ago] += n; if (ago < 10) a += n; else if (ago < 20) b += n; }
     const nr = { km, ago: ago + age, dir: DIRS[Math.round(((Math.atan2(x, y) * 180 / Math.PI + 360) % 360) / 45) % 8] };
     if (ago < 15 && (!near || km < near.km)) near = nr;
@@ -204,7 +205,9 @@ function rayosNear(d, lat, lon) {
   near = near5 || near;
   const trend = a >= 1.5 * b + 3 ? 'up' : a <= 0.6 * b - 3 ? 'down' : 'flat';
   const j = lightningJump(perMin);
-  return { age, pts, n10, perMin, near, trend, jump: j == null ? null : j + age, lvl: RAY_LVL(n10) };
+  // Criterio rápido (tormenta encima ahora): rayos a menos de 20 km en los últimos 5 min, o salto brusco reciente
+  const fast = n5 >= 100 ? 3 : n5 >= 30 || (j != null && j <= 10 && near && near.km <= 20) ? 2 : 0;
+  return { age, pts, n10, n5, perMin, near, trend, jump: j == null ? null : j + age, lvl: Math.max(RAY_LVL(n10), fast), strong: n5 >= 100 && near && near.km <= 10 };
 }
 // Salto brusco de rayos (algoritmo 2σ de Schultz et al.): tasa en períodos de 2 min; salto si el aumento
 // supera 2 desvíos de los 10 min previos y la tasa es de 4 rayos/min o más. Devuelve hace cuántos minutos.
@@ -260,10 +263,11 @@ function rayosCard(r, err) {
   return `<details class="card ray-mini${L ? ' lvlb-' + L : ''}"><summary>${row('on', title, sub, lj, '<span class="chev" aria-hidden="true">›</span>')}</summary>
     <div class="ray-more"><div class="ray-grid">${polar(r.pts)}<div class="ray-info">
       <div class="ray-n"><b>${Math.round(r.n10)}</b> ${Math.round(r.n10) === 1 ? 'rayo' : 'rayos'}</div><div class="muted small">a menos de 10 km en la última media hora</div>
+      <div class="muted small"><b>${Math.round(r.n5)}</b> en los últimos 5 min a menos de 20 km</div>
       <div class="ray-near">${near}</div>${tr}</div></div>
     ${r.jump != null ? `<div class="lj"><b>Salto brusco de rayos</b> ${haceMin(r.jump)}: suele anticipar el granizo unos 25 minutos.</div>` : ''}
     <div class="spark-wrap"><span class="muted small">Rayos por minuto a menos de 20 km</span>${spark(r.perMin, r.age)}</div>
-    <details><summary class="muted small">Cómo se calcula</summary><p class="small">Contamos los rayos que detecta el satélite GOES-19 (NOAA) a menos de 10 km de este lugar en la última media hora. Los niveles se calibraron con 48 granizadas registradas en aeropuertos de Cuyo y 900 tormentas sin granizo (2018-2026): con 5 rayos o más se detectó el 96% de las granizadas, y con 80 o más el granizo fue unas 6 veces más probable que en una tormenta común. El satélite ubica cada rayo con un margen de algunos kilómetros, y es una estimación: el granizo puede no caer justo en tu punto.</p></details>
+    <details><summary class="muted small">Cómo se calcula</summary><p class="small">Contamos los rayos que detecta el satélite GOES-19 (NOAA) a menos de 10 km de este lugar en la última media hora. Los niveles se calibraron con 48 granizadas registradas en aeropuertos de Cuyo y 900 tormentas sin granizo (2018-2026): con 5 rayos o más se detectó el 96% de las granizadas, y con 80 o más el granizo fue unas 6 veces más probable que en una tormenta común. Para reaccionar rápido, el nivel también sube con 30 rayos o más a menos de 20 km en los últimos 5 minutos (alto con 100 o más) o con un salto brusco reciente. El satélite ubica cada rayo con un margen de algunos kilómetros, y es una estimación: el granizo puede no caer justo en tu punto.</p></details>
     <p class="muted small">Satélite GOES-19 · ${r.age <= 1 ? 'actualizado recién' : `actualizado hace ${r.age} min`}</p></div>
   </details>`;
 }
@@ -516,7 +520,9 @@ function render(place, f, smnData, smnErr, quakes, qErr, coords, fromCache, rayD
   const near24 = near.filter(x => !isAdv(x) && onT(x) <= now + 24 * 3600e3), nearKm = near24.length ? Math.min(...near24.map(x => x.km)) : null;
   const when = r =>r.smn === 'ahora' ? 'ahora' : fmtWhen(r.at);
   const head = acp.length ? 'Tormenta fuerte en curso en tu zona'
+    : rayLvl && ray.strong ? 'Tormenta fuerte encima de tu zona'
     : rayLvl ? `${ray.near ? 'Rayos ' + distTxt(ray.near) : 'Rayos cerca'}: riesgo ${LVL[rayLvl].toLowerCase()} de granizo`
+    : ray && ray.age <= 20 && ray.near && ray.near.km <= 20 ? `Rayos ${distTxt(ray.near)}: atento al cielo`
     : rk.hail.lvl ? `Riesgo ${LVL[rk.hail.lvl].toLowerCase()} de granizo ${when(rk.hail)}`
     : rk.storm.lvl ? `Riesgo ${LVL[rk.storm.lvl].toLowerCase()} de tormenta ${when(rk.storm)}`
     : rk.wind.lvl ? `Ráfagas fuertes ${when(rk.wind)}`
@@ -659,6 +665,7 @@ async function load() {
 
 $('#refresh').onclick = () => { smnCache = null; load(); };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+setInterval(() => { if (!document.hidden) load(); }, 180e3); // con la app abierta, refresca cada 3 min
 
 /* ---------- Tema: automático / claro / oscuro ---------- */
 const LS_THEME = 'ac.theme';
@@ -688,6 +695,7 @@ applyTheme(false);
 
 /* ---------- Novedades (historial de versiones para el usuario) ---------- */
 const NEWS = [
+  ['1.16', '19/11/2026', ['Con una tormenta encima reacciona más rápido: si hay muchos rayos cerca en los últimos 5 minutos, el riesgo sube y el titular avisa “Tormenta fuerte encima de tu zona”.', 'Con la app abierta, los datos se actualizan solos cada 3 minutos.']],
   ['1.15.1', '16/11/2026', ['Al tocar un día, el resumen arranca diciendo qué significa el ícono (soleado, nublado, llovizna…).']],
   ['1.15', '16/11/2026', ['Rayos más al día: se actualizan cada 5 minutos.', 'Tocá un día en “Próximos días” para ver un resumen: lluvia, tormentas, granizo, viento y UV.', 'Los nombres largos de lugar se acortan y el botón “＋” para agregar lugares queda siempre a la vista.', 'Las alertas de zonas vecinas indican también la dirección.']],
   ['1.14', '15/11/2026', ['El titular, el gráfico por hora y los próximos días ahora coinciden con las alertas del SMN que mencionan granizo.', 'Si hay una alerta del SMN en una zona vecina (a menos de 20 km), la app lo avisa con la distancia y el departamento.']],

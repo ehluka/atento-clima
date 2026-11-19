@@ -2,6 +2,12 @@
 
 App: https://ehluka.github.io/atento-clima/ · Repo: https://github.com/ehluka/atento-clima
 
+## v1.16 — 19/11/2026
+- Comparación en vivo con Piedra Libre (19/11 07:30, tormenta sobre San Luis): mismos datos (108 rayos en 5 min a <20 km, el más cercano a ~4 km), pero nosotros quedábamos en "moderado" y con datos de hace 5–10 min.
+- Criterio rápido de rayos además del calibrado (10 km / 30 min): ≥30 rayos a <20 km en los últimos 5 min → moderado, ≥100 → alto; salto brusco en los últimos 10 min con rayos a <20 km → moderado. Con ≥100 y el más cercano a ≤10 km el titular dice "Tormenta fuerte encima de tu zona".
+- Rayos a <20 km sin nivel: el titular dice "Rayos a unos N km: atento al cielo" en vez del pronóstico.
+- Rayos siempre descargados frescos (sin caché por minuto) y refresco automático cada 3 min con la app abierta.
+
 ## v1.15.1 — 16/11/2026
 - Resumen por día más corto (1–2 filas) y empieza con el significado del ícono en negrita (ej. "**Nublado.** Granizo bajo a las 23 h · ráfagas de 51 km/h.").
 
